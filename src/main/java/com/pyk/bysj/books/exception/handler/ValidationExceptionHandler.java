@@ -1,4 +1,4 @@
-package com.pyk.bysj.books.exception;
+package com.pyk.bysj.books.exception.handler;
 
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.ConstraintViolationException;

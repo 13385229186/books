@@ -7,15 +7,8 @@ import com.pyk.bysj.books.utils.ResponseData;
 import java.util.List;
 
 public interface BookService {
-
   /**
-   * 获取书籍列表，支持分页、条件筛选
-   * @return 书籍列表
-   */
-  List<Book> bookList(BookDTO bookDTO);
-
-  /**
-   * 添加书籍
+   * 添加书籍基本信息
    * @param book 新增书籍
    * @return ResponseData
    */
@@ -35,12 +28,7 @@ public interface BookService {
    */
   ResponseData deleteBook(Integer id);
 
-  /**
-   * 根据书籍id获取书籍详细信息
-   * @param id 书籍id
-   * @return Book书籍详细信息
-   */
-  Book getBookById(Integer id);
+
 
 
 

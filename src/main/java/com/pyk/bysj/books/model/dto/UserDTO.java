@@ -5,18 +5,11 @@ import lombok.Getter;
 
 public class UserDTO {
   private Integer id;
-  @Getter
-  private Role role;
+  private String avatar;
   private String name;
   private String phone;
+  @Getter
+  private Role role;
 
-  /**
-   * 当前页数
-   */
-  private Integer current;
-
-  /**
-   * 每页数据条数
-   */
-  private Integer pageSize;
+  private PageParam pageParam;
 }
