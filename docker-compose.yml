@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./
+    dns:
+      - 8.8.8.8
+      - 114.114.114.114
+    image: books-app:latest
+#    image: openjdk:17
+    ports:
+      - "8080:8080"
+    environment:
+      # 数据库配置
+      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/books?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATASOURCE_TYPE=com.alibaba.druid.pool.DruidDataSource
+
+      # Redis配置
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=123456
+
+      # JWT配置
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_TOKEN_HEADER=Authorization
+      - JWT_TOKEN_PREFIX=Bearer
+      - JWT_EXPIRATION_TIME=86400
+      - JWT_REFRESH-EXPIRATION=604800
+
+      # COS配置
+      - COS_REGION=ap-shanghai
+      - COS_SECRET_ID=${COS_SECRET_ID}
+      - COS_SECRET_KEY=${COS_SECRET_KEY}
+      - COS_BUCKET_NAME=books-1329007513
+
+      # 其他配置
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: books
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+
+  redis:
+    image: redis:7-alpine
+    # command: redis-server --requirepass 123456  # 设置Redis密码
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "123456", "ping"]
+
+volumes:
+  mysql_data:
+  redis_data:
