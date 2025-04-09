@@ -1,4 +1,6 @@
-import os, argparse, warnings, sys, io
+import os, argparse, warnings, sys, io, re
+
+import ebooklib
 from ebooklib import epub
 from qcloud_cos import CosConfig, CosS3Client
 from charset_normalizer import detect
@@ -33,14 +35,18 @@ def parse_epub_image(bookName, filePath, fileName, coverPath):
     )
 
     # 处理章节
-    for i, item in enumerate(book.get_items_of_type(epub.EpubHtml)):
+    for i, item in enumerate(book.get_items_of_type(ebooklib.ITEM_DOCUMENT)):
         # 获取章节标题（如果没有则使用默认值）
         chapter_title = item.get_name() or f"chapter_{i+1}"
         chapter_key = f"books/{bookName}/content/chapter_{i+1}.txt"
+        # 使用正则获取body中的内容
+        pattern = r'<body>(.*?)</body>'
+        match = re.search(pattern, safe_decode(item.get_content()), re.DOTALL)
+
         cos_client.put_object(
             Bucket=os.getenv('COS_BUCKET'),
             Key=chapter_key,
-            Body=safe_decode(item.get_content()),
+            Body=match.group(1),
             Metadata={
                 "original-title": chapter_title,  # 保留原始标题元数据
                 "chapter-num": str(i+1)          # 保留章节序号

@@ -37,7 +37,7 @@ public class BookController {
   }
 
   @PostMapping("/bookUpload")
-  public ResponseData bookUpload(@RequestPart("bookData") @Valid BookDTO bookDTO, @RequestPart("file") MultipartFile file, @RequestPart(value = "cover") MultipartFile cover) throws IOException {
+  public ResponseData bookUpload(@RequestPart("bookData") @Valid BookDTO bookDTO, @RequestPart("file") MultipartFile file, @RequestPart("cover") MultipartFile cover) throws IOException {
     // 校验封面图片格式
     if (!cover.getContentType().startsWith("image/")) {
       throw new BookUploadException("书籍封面仅支持图片文件", 400);
@@ -99,6 +99,9 @@ public class BookController {
 
       String error = new BufferedReader(new InputStreamReader(p.getErrorStream(), StandardCharsets.UTF_8))
               .lines().collect(Collectors.joining("\n"));
+
+      System.out.println("output: " + output);
+      System.out.println("error = " + error);
 
       // 带超时等待
       boolean finished = p.waitFor(10, TimeUnit.MINUTES);
