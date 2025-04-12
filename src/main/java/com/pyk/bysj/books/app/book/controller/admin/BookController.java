@@ -65,7 +65,7 @@ public class BookController {
     book.setCover(ebookDTO.getCover_path());
     book.setEbook(ebookDTO.getOriginal_path());
 
-    return bookService.addBook(book);
+    return bookService.addBook(book, bookDTO.getBookNumber());
   }
 
   private String executePythonParser(String bookName, String filePath, String fileName, String coverPath) throws UnsupportedEncodingException {
@@ -112,10 +112,8 @@ public class BookController {
 
       // 检查Python是否报错
       if (p.exitValue() != 0) {
-        throw new BookUploadException(
-                "Python脚本错误: " + (error.isEmpty() ? output : error),
-                500
-        );
+        System.err.println("Python脚本错误: " + (error.isEmpty() ? output : error));
+        throw new BookUploadException("上传解析出错",500);
       }
 
       return output;

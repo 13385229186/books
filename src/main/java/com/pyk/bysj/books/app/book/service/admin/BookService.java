@@ -12,7 +12,7 @@ public interface BookService {
    * @param book 新增书籍
    * @return ResponseData
    */
-  ResponseData addBook(Book book);
+  ResponseData addBook(Book book, Integer bookNumber);
 
   /**
    * 根据id修改书籍信息
@@ -28,7 +28,13 @@ public interface BookService {
    */
   ResponseData deleteBook(Integer id);
 
-
+  /**
+   * 设置书本数量
+   * @param isbn 书籍isbn
+   * @param number 数量
+   * @return ResponseData
+   */
+  ResponseData setBookNumber(String isbn, Integer number);
 
 
 

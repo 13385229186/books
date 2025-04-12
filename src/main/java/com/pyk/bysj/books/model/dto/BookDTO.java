@@ -20,6 +20,7 @@ public class BookDTO {
   private String press;
   private Integer categoryId;
   private String intro;
+  private Integer bookNumber = 0;
   @Getter
   private BookStatus status;
   private String ebook;
