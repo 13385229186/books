@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HotBooks {
-  private Integer hotId;
+public class HotBook {
+  private Integer id;
   private Integer categoryId;
-  private String isbn;
+  private Integer bookId;
   private Float heatScore;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;

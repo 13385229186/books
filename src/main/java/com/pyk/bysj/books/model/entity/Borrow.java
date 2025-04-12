@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class Borrow {
   private Long id;
   private Integer userId;
-  private String isbn;
+  private Integer bookId;
   private LocalDateTime borrowTime;
   private LocalDateTime dueTime;
   private LocalDateTime returnTime;

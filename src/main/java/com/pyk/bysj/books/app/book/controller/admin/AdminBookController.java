@@ -1,13 +1,14 @@
 package com.pyk.bysj.books.app.book.controller.admin;
 
 import com.alibaba.fastjson2.JSON;
-import com.pyk.bysj.books.app.book.service.admin.BookService;
+import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
 import com.pyk.bysj.books.exception.BookUploadException;
 import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.EbookDTO;
 import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,10 +17,8 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -28,16 +27,20 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin")
-public class BookController {
-  private final BookService bookService;
+public class AdminBookController {
+  private final AdminBookService bookService;
 
   @Autowired
-  public BookController(BookService bookService) {
+  public AdminBookController(AdminBookService bookService) {
     this.bookService = bookService;
   }
 
   @PostMapping("/bookUpload")
-  public ResponseData bookUpload(@RequestPart("bookData") @Valid BookDTO bookDTO, @RequestPart("file") MultipartFile file, @RequestPart("cover") MultipartFile cover) throws IOException {
+  public ResponseData bookUpload(
+          @RequestPart("bookData") @Valid BookDTO bookDTO,
+          @RequestPart("file") MultipartFile file,
+          @RequestPart("cover") MultipartFile cover
+  ) throws IOException {
     // 校验封面图片格式
     if (!cover.getContentType().startsWith("image/")) {
       throw new BookUploadException("书籍封面仅支持图片文件", 400);
@@ -122,8 +125,30 @@ public class BookController {
     }
   }
 
+  @PostMapping("/updateBook")
+  public ResponseData updateBook(
+          @RequestParam("id") @Positive Integer id,
+          @RequestPart("bookData") @Valid BookDTO bookDTO
+  ){
+    Book book = bookDTO.toEntity();
+    book.setId(id);
+    return bookService.updateBook(book);
+  }
 
+  @PostMapping("/deleteBook")
+  public ResponseData deleteBook(
+          @RequestParam("id") @Positive Integer id
+  ) {
+    return bookService.deleteBook(id);
+  }
 
+  @PostMapping("/setBookNumber")
+  public ResponseData setBookNumber(
+          @RequestParam("id") @Positive Integer id,
+          @RequestParam("bookNumber") @Positive Integer bookNumber
+  ){
+    return bookService.setBookNumber(id, bookNumber);
+  }
 
 
 }

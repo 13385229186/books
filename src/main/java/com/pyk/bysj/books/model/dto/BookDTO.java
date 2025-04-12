@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookDTO {
+  private Integer id;
   private String isbn;
   private String cover;
   private String title;
@@ -20,14 +21,15 @@ public class BookDTO {
   private String press;
   private Integer categoryId;
   private String intro;
-  private Integer bookNumber = 0;
   @Getter
   private BookStatus status;
   private String ebook;
 
-  private PageParam pageParam;
+  private Integer bookNumber = 0;
+
+  private PageParam pageParam = new PageParam();
 
   public Book toEntity(){
-    return new Book(this.isbn, this.cover, this.title, this.author, this.press, this.categoryId, this.intro, this.status, this.ebook);
+    return new Book(this.id, this.isbn, this.cover, this.title, this.author, this.press, this.categoryId, this.intro, this.status, this.ebook);
   }
 }

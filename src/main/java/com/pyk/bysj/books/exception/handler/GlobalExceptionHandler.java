@@ -27,6 +27,11 @@ public class GlobalExceptionHandler {
     return ResponseData.fail(400, "文件大小超过限制！");
   }
 
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseData handleIllegalArgumentException(Exception ex) {
+    return ResponseData.fail(400, ex.getMessage());
+  }
+
   /**
    * 处理Exception异常
    * @param ex Exception异常

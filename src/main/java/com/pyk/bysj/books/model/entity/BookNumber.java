@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookNumber {
   private Integer id;
-  private String isbn;
+  private Integer book_id;
   private Integer number;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public BookNumber(String isbn, Integer bookNumber) {
-    this.isbn = isbn;
+  public BookNumber(Integer book_id, Integer bookNumber) {
+    this.book_id = book_id;
     this.number = bookNumber;
   }
 }

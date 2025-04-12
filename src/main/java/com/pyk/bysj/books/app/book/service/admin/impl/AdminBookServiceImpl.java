@@ -1,6 +1,6 @@
 package com.pyk.bysj.books.app.book.service.admin.impl;
 
-import com.pyk.bysj.books.app.book.service.admin.BookService;
+import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
 import com.pyk.bysj.books.mapper.BookMapper;
 import com.pyk.bysj.books.mapper.BookNumberMapper;
 import com.pyk.bysj.books.model.entity.Book;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class BookServiceImpl implements BookService {
+public class AdminBookServiceImpl implements AdminBookService {
   @Autowired
   private BookMapper bookMapper;
   @Autowired
@@ -31,26 +31,36 @@ public class BookServiceImpl implements BookService {
 
     // 若为新书，添加该书信息
     int insert1 = bookMapper.insert(book);
-    int insert2 = bookNumberMapper.insert(new BookNumber(book.getIsbn(), bookNumber));
-    if (insert1 > 0 && insert2 > 0) {
-      return ResponseData.success();
+    if (insert1 > 0) {
+      int insert2 = bookNumberMapper.insert(new BookNumber(book.getId(), bookNumber));
+      if (insert2 > 0) {
+        return ResponseData.success();
+      }
     }
     return ResponseData.fail("书籍信息添加失败！");
   }
 
   @Override
   public ResponseData updateBook(Book book) {
-    return null;
+    int i = bookMapper.updateById(book);
+    if (i > 0) {
+      return ResponseData.success();
+    }
+    return ResponseData.fail("更新失败");
   }
 
   @Override
   public ResponseData deleteBook(Integer id) {
-    return null;
+    int i = bookMapper.deleteById(id);
+    if (i > 0) {
+      return ResponseData.success();
+    }
+    return ResponseData.fail("删除失败");
   }
 
   @Override
-  public ResponseData setBookNumber(String isbn, Integer number) {
-    List<BookNumber> bookNumbers = bookNumberMapper.selectByMap(Map.of("isbn", isbn));
+  public ResponseData setBookNumber(Integer id, Integer number) {
+    List<BookNumber> bookNumbers = bookNumberMapper.selectByMap(Map.of("book_id", id));
     if(bookNumbers.isEmpty()){
       return ResponseData.fail("书籍不存在");
     }

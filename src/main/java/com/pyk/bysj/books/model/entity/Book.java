@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Book {
+  private Integer id;
   private String isbn;
   private String cover;
   private String title;
@@ -25,7 +26,8 @@ public class Book {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public Book(String isbn, String cover, String title, String author, String press, Integer categoryId, String intro, BookStatus status, String ebook) {
+  public Book(Integer id, String isbn, String cover, String title, String author, String press, Integer categoryId, String intro, BookStatus status, String ebook) {
+    this.id = id;
     this.isbn = isbn;
     this.cover = cover;
     this.title = title;
