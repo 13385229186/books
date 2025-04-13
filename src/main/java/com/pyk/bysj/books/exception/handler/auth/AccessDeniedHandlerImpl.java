@@ -1,4 +1,4 @@
-package com.pyk.bysj.books.exception.auth;
+package com.pyk.bysj.books.exception.handler.auth;
 
 import com.alibaba.fastjson2.JSON;
 import com.pyk.bysj.books.utils.AuthExceptionUtil;

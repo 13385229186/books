@@ -3,9 +3,11 @@ package com.pyk.bysj.books.model.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class LoginDTO {
   @NotBlank(message = "用户名不能为空")
 //  @Size(min = 4, max = 20, message = "用户名长度4-20个字符")

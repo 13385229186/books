@@ -1,6 +1,8 @@
 package com.pyk.bysj.books.model.entity;
 
+import com.pyk.bysj.books.enums.BorrowStatus;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
@@ -13,10 +15,18 @@ public class Borrow {
   private Long id;
   private Integer userId;
   private Integer bookId;
+  private Integer borrowDays;
   private LocalDateTime borrowTime;
   private LocalDateTime dueTime;
   private LocalDateTime returnTime;
-  private Double fineAmount;
+  @Getter
+  private BorrowStatus status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+
+  public Borrow(Integer userId, Integer bookId, Integer borrowDays) {
+    this.userId = userId;
+    this.bookId = bookId;
+    this.borrowDays = borrowDays;
+  }
 }

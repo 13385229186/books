@@ -1,20 +1,23 @@
 package com.pyk.bysj.books.app.book.controller.user;
 
+import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
 import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.entity.Book;
+import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ObjectToMapUtil;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Slf4j
+@Validated
 @RestController
 @RequestMapping("/user")
 public class UserBookController {
@@ -50,18 +53,22 @@ public class UserBookController {
 
   @PostMapping("/getBookById")
   public ResponseData getBookById(
-          @RequestParam("id") @Positive Integer id
+          @RequestParam("id")
+          @NotNull(message = "id不能为空")
+          @Positive(message = "id必须为正整数")
+          Integer id
   ) {
     return ResponseData.success(bookService.getBookById(id));
   }
 
   @PostMapping("/getBookNumberById")
   public ResponseData getBookNumberById(
-          @RequestParam("id") @Positive Integer id
+          @RequestParam("id")
+          @NotNull(message = "id不能为空")
+          @Positive(message = "id必须为正整数")
+          Integer id
   ){
     return ResponseData.success(bookService.getBookNumberById(id));
   }
-
-
 
 }

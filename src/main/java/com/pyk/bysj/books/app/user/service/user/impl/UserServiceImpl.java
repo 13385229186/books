@@ -2,12 +2,14 @@ package com.pyk.bysj.books.app.user.service.user.impl;
 
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.mapper.LoginMapper;
+import com.pyk.bysj.books.mapper.UserCreditMapper;
 import com.pyk.bysj.books.mapper.UserMapper;
 import com.pyk.bysj.books.model.LoginUserDetails;
 import com.pyk.bysj.books.model.dto.LoginDTO;
 import com.pyk.bysj.books.model.entity.Login;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.app.user.service.user.UserService;
+import com.pyk.bysj.books.model.entity.UserCredit;
 import com.pyk.bysj.books.utils.RedisUtil;
 import com.pyk.bysj.books.utils.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,8 @@ public class UserServiceImpl implements UserService {
   private RedisUtil redisUtil;
   @Autowired
   private JwtTokenUtil jwtTokenUtil;
+  @Autowired
+  private UserCreditMapper userCreditMapper;
 
   @Override
   @Transactional
@@ -84,7 +88,9 @@ public class UserServiceImpl implements UserService {
     if (userMapper.insert(user) > 0) {
       // 创建登录对象
       Login login = new Login(user.getId(), username, encodedPassword);
-      if(loginMapper.insert(login) > 0){
+      // 创建用户信用分
+      UserCredit userCredit = new UserCredit(user.getId());
+      if(loginMapper.insert(login) > 0 && userCreditMapper.insert(userCredit) > 0){
         return ResponseData.success();
       }
     }
@@ -92,13 +98,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public ResponseData updateInfo(String name, String phone) {
-    // 获取 principal（即UserDetails）
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    LoginUserDetails userDetails = (LoginUserDetails) authentication.getPrincipal();
-    // 获取该user对象
-    User user = userDetails.getUser();
-
+  public ResponseData updateInfo(User user, String name, String phone) {
     // 检查phone是否会重复
     List<User> phoneList = userMapper.selectByMap(Map.of("phone", phone));
     if (!phoneList.isEmpty() && !user.equals(phoneList.get(0))) {

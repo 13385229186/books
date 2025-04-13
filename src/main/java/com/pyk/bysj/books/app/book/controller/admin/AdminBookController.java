@@ -2,14 +2,19 @@ package com.pyk.bysj.books.app.book.controller.admin;
 
 import com.alibaba.fastjson2.JSON;
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
-import com.pyk.bysj.books.exception.BookUploadException;
+import com.pyk.bysj.books.exception.book.BookUploadException;
 import com.pyk.bysj.books.model.dto.BookDTO;
+import com.pyk.bysj.books.model.dto.BorrowStatusDTO;
 import com.pyk.bysj.books.model.dto.EbookDTO;
 import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +29,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-
+@Validated
 @RestController
 @RequestMapping("/admin")
 public class AdminBookController {
@@ -127,8 +132,13 @@ public class AdminBookController {
 
   @PostMapping("/updateBook")
   public ResponseData updateBook(
-          @RequestParam("id") @Positive Integer id,
-          @RequestPart("bookData") @Valid BookDTO bookDTO
+          @RequestParam("id")
+          @NotNull(message = "id不能为空")
+          @Positive(message = "id必须为正整数")
+          Integer id,
+          @RequestPart("bookData")
+          @Valid
+          BookDTO bookDTO
   ){
     Book book = bookDTO.toEntity();
     book.setId(id);
@@ -137,15 +147,23 @@ public class AdminBookController {
 
   @PostMapping("/deleteBook")
   public ResponseData deleteBook(
-          @RequestParam("id") @Positive Integer id
+          @RequestParam("id")
+          @NotNull(message = "id不能为空")
+          @Positive(message = "id必须为正整数")
+          Integer id
   ) {
     return bookService.deleteBook(id);
   }
 
   @PostMapping("/setBookNumber")
   public ResponseData setBookNumber(
-          @RequestParam("id") @Positive Integer id,
-          @RequestParam("bookNumber") @Positive Integer bookNumber
+          @RequestParam("id")
+          @NotNull(message = "id不能为空")
+          @Positive(message = "id必须为正整数")
+          Integer id,
+          @RequestParam("bookNumber")
+          @NotNull(message = "书本库存不能为空")
+          @PositiveOrZero(message = "书本库存必须为非负整数") Integer bookNumber
   ){
     return bookService.setBookNumber(id, bookNumber);
   }

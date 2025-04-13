@@ -1,6 +1,7 @@
 package com.pyk.bysj.books.app.user.service.user;
 
 import com.pyk.bysj.books.model.dto.LoginDTO;
+import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ResponseData;
 
 public interface UserService {
@@ -26,7 +27,7 @@ public interface UserService {
    * @param phone 手机号
    * @return ResponseData
    */
-  ResponseData updateInfo(String name, String phone);
+  ResponseData updateInfo(User user, String name, String phone);
 
   /**
    * 修改密码

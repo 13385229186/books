@@ -4,6 +4,8 @@ import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.ListQueryResult;
 import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.entity.Book;
+import com.pyk.bysj.books.model.entity.User;
+import com.pyk.bysj.books.utils.ResponseData;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,6 @@ public interface UserBookService {
    * @return int实体书籍数量
    */
   int getBookNumberById(Integer id);
-
 
 
 

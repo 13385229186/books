@@ -3,31 +3,30 @@ package com.pyk.bysj.books.app.book.service.user.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
 import com.pyk.bysj.books.enums.BookStatus;
 import com.pyk.bysj.books.mapper.BookMapper;
 import com.pyk.bysj.books.mapper.BookNumberMapper;
-import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.ListQueryResult;
 import com.pyk.bysj.books.model.dto.PageParam;
-import com.pyk.bysj.books.model.entity.Book;
-import com.pyk.bysj.books.model.entity.BookNumber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.pyk.bysj.books.model.entity.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@Transactional
+@Slf4j
 public class UserBookServiceImpl implements UserBookService {
-  private static final Logger log = LoggerFactory.getLogger(UserBookServiceImpl.class);
   private final BookMapper bookMapper;
   private final BookNumberMapper bookNumberMapper;
 
+  @Autowired
   public UserBookServiceImpl(BookMapper bookMapper, BookNumberMapper bookNumberMapper) {
     this.bookMapper = bookMapper;
     this.bookNumberMapper = bookNumberMapper;
@@ -105,4 +104,6 @@ public class UserBookServiceImpl implements UserBookService {
     }
     return 0;
   }
+
+
 }

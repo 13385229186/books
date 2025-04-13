@@ -1,6 +1,9 @@
 package com.pyk.bysj.books.app.book.service.admin.impl;
 
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
+import com.pyk.bysj.books.exception.general.NotExistException;
+import com.pyk.bysj.books.exception.general.OperationFailedException;
+import com.pyk.bysj.books.exception.general.SqlFailedException;
 import com.pyk.bysj.books.mapper.BookMapper;
 import com.pyk.bysj.books.mapper.BookNumberMapper;
 import com.pyk.bysj.books.model.entity.Book;
@@ -14,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Transactional
 public class AdminBookServiceImpl implements AdminBookService {
   @Autowired
   private BookMapper bookMapper;
@@ -21,12 +25,11 @@ public class AdminBookServiceImpl implements AdminBookService {
   private BookNumberMapper bookNumberMapper;
 
   @Override
-  @Transactional
   public ResponseData addBook(Book book, Integer bookNumber) {
     // 根据isbn检查书籍是否已添加
     List<Book> isbnList = bookMapper.selectByMap(Map.of("isbn", book.getIsbn()));
     if(!isbnList.isEmpty()){
-      return ResponseData.fail("请勿重复添加书籍：" + isbnList.get(0).getTitle());
+      throw new OperationFailedException("请勿重复添加书籍：" + isbnList.get(0).getTitle());
     }
 
     // 若为新书，添加该书信息
@@ -37,7 +40,7 @@ public class AdminBookServiceImpl implements AdminBookService {
         return ResponseData.success();
       }
     }
-    return ResponseData.fail("书籍信息添加失败！");
+    throw new SqlFailedException("书籍信息添加失败");
   }
 
   @Override
@@ -46,7 +49,7 @@ public class AdminBookServiceImpl implements AdminBookService {
     if (i > 0) {
       return ResponseData.success();
     }
-    return ResponseData.fail("更新失败");
+    throw new SqlFailedException("更新失败");
   }
 
   @Override
@@ -55,17 +58,21 @@ public class AdminBookServiceImpl implements AdminBookService {
     if (i > 0) {
       return ResponseData.success();
     }
-    return ResponseData.fail("删除失败");
+    throw new SqlFailedException("删除失败");
   }
 
   @Override
   public ResponseData setBookNumber(Integer id, Integer number) {
     List<BookNumber> bookNumbers = bookNumberMapper.selectByMap(Map.of("book_id", id));
     if(bookNumbers.isEmpty()){
-      return ResponseData.fail("书籍不存在");
+      throw new NotExistException("书籍不存在");
     }
     bookNumbers.get(0).setNumber(number);
     boolean b = bookNumberMapper.insertOrUpdate(bookNumbers.get(0));
-    return b ? ResponseData.success() : ResponseData.fail(500, "设置失败");
+    if(b){
+      return ResponseData.success();
+    }else{
+      throw new SqlFailedException("设置失败");
+    }
   }
 }
