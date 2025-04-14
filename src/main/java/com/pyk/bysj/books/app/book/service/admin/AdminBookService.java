@@ -20,18 +20,18 @@ public interface AdminBookService {
 
   /**
    * 根据id删除书籍
-   * @param id 书籍id
+   * @param bookId 书籍id
    * @return ResponseData
    */
-  ResponseData deleteBook(Integer id);
+  ResponseData deleteBook(Integer bookId);
 
   /**
    * 根据id修改实体书籍数量
-   * @param id 书籍id
+   * @param bookId 书籍id
    * @param number 数量
    * @return ResponseData
    */
-  ResponseData setBookNumber(Integer id, Integer number);
+  ResponseData setBookNumber(Integer bookId, Integer number);
 
 
 

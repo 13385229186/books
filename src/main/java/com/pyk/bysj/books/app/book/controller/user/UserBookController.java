@@ -51,22 +51,22 @@ public class UserBookController {
 
   @PostMapping("/getBookById")
   public ResponseData getBookById(
-          @RequestParam("id")
+          @RequestParam("bookId")
           @NotNull(message = "id不能为空")
           @Positive(message = "id必须为正整数")
-          Integer id
+          Integer bookId
   ) {
-    return ResponseData.success(bookService.getBookById(id));
+    return ResponseData.success(bookService.getBookById(bookId));
   }
 
   @PostMapping("/getBookNumberById")
   public ResponseData getBookNumberById(
-          @RequestParam("id")
+          @RequestParam("bookId")
           @NotNull(message = "id不能为空")
           @Positive(message = "id必须为正整数")
-          Integer id
+          Integer bookId
   ){
-    return ResponseData.success(bookService.getBookNumberById(id));
+    return ResponseData.success(bookService.getBookNumberById(bookId));
   }
 
 }

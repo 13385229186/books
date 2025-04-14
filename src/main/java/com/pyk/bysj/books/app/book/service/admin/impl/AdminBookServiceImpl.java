@@ -1,6 +1,8 @@
 package com.pyk.bysj.books.app.book.service.admin.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
+import com.pyk.bysj.books.enums.BookStatus;
 import com.pyk.bysj.books.exception.general.NotExistException;
 import com.pyk.bysj.books.exception.general.OperationFailedException;
 import com.pyk.bysj.books.exception.general.SqlFailedException;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -62,13 +65,42 @@ public class AdminBookServiceImpl implements AdminBookService {
   }
 
   @Override
-  public ResponseData setBookNumber(Integer id, Integer number) {
-    List<BookNumber> bookNumbers = bookNumberMapper.selectByMap(Map.of("book_id", id));
-    if(bookNumbers.isEmpty()){
+  public ResponseData setBookNumber(Integer bookId, Integer number) {
+    // 检查书籍是否存在
+    BookNumber bookNumber = bookNumberMapper.selectOne(
+            Wrappers.<BookNumber>lambdaQuery()
+                    .eq(BookNumber::getBookId, bookId)
+    );
+    if(bookNumber == null){
       throw new NotExistException("书籍不存在");
     }
-    bookNumbers.get(0).setNumber(number);
-    boolean b = bookNumberMapper.insertOrUpdate(bookNumbers.get(0));
+
+    // 检查是否需要修改
+    if(Objects.equals(bookNumber.getNumber(), number)){
+      return ResponseData.success();
+    }
+
+    // 检查是否会影响书籍状态
+    ResponseData responseData = ResponseData.success();
+    if(bookNumber.getNumber() == 0 || number == 0){
+      Book book = new Book();
+      book.setId(bookId);
+      if(bookNumber.getNumber() > 0){
+        // 从多本设置为0本，修改书籍状态为MAINTENANCE
+        book.setStatus(BookStatus.MAINTENANCE);
+      } else if (bookNumber.getNumber() == 0 && number > 0) {
+        // 从0本设置为多本，修改书籍状态为MAINTENANCE
+        book.setStatus(BookStatus.AVAILABLE);
+      }
+      responseData = updateBook(book);
+    }
+    if(responseData.getCode() != 200){
+      return responseData;
+    }
+
+    // 修改书本数量
+    bookNumber.setNumber(number);
+    boolean b = bookNumberMapper.insertOrUpdate(bookNumber);
     if(b){
       return ResponseData.success();
     }else{

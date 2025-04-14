@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Wrapper;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @Transactional
@@ -36,23 +38,28 @@ public class AdminBorrowServiceImpl implements AdminBorrowService {
 
   @Override
   public ResponseData setBorrowStatus(Long id, BorrowStatus status) {
-    Borrow borrow = new Borrow();
-    borrow.setId(id);
+    Borrow borrow = borrowMapper.selectById(id);
+
+    // 根据不同目标状态进行处理
+    ResponseData responseData = ResponseData.success();
+    if (ViolationType.canConvertByName(status.name())){
+      // 判断是否属于违规行为状态EXPIRED、OVERDUE、LOST
+      responseData = handleViolationStatus(borrow, ViolationType.valueOf(status.name()));
+    }else{
+      // 其余属于正常借阅流程状态 CANCELLED、BORROWED、RETURNED
+      responseData = handleNormalStatus(borrow, status);
+    }
+    if(responseData.getCode() != 200){
+      return responseData;
+    }
+
+    // 修改借阅状态
     borrow.setStatus(status);
     int i = borrowMapper.updateById(borrow);
     if (i > 0) {
-      // 判断是否属于违规行为状态EXPIRED、OVERDUE、LOST
-      if (ViolationType.canConvertByName(status.name())){
-        return handleViolation(borrowMapper.selectById(id), ViolationType.valueOf(status.name()));
-      }
-
-
-      // 正常借阅流程状态CANCELLED、BORROWED、RETURNED
-
-
       return ResponseData.success();
     }
-    throw new SqlFailedException("状态修改失败");
+    throw new SqlFailedException("借阅状态修改失败");
   }
 
   /**
@@ -61,36 +68,98 @@ public class AdminBorrowServiceImpl implements AdminBorrowService {
    * @param violationType 违规类型
    * @return ResponseData
    */
-  private ResponseData handleViolation(Borrow borrow, ViolationType violationType) {
-    int score = 0; // 即将扣除的信誉分
+  public ResponseData handleViolationStatus(Borrow borrow, ViolationType violationType) {
+    int gapScore = 0; // 即将扣除的信用分
     // 判断违规类型
     switch (violationType) {
-      case EXPIRED -> score = 10;
-      case OVERDUE -> score = 20;
-      case LOST -> score = 40;
+      case EXPIRED -> {
+        if(borrow.getStatus() != BorrowStatus.APPLIED){
+          throw new BorrowStatusException("只有申请中的借阅记录可标记为已过期");
+        }
+        gapScore = 10;
+      }
+      case OVERDUE -> {
+        if(borrow.getStatus() != BorrowStatus.BORROWED){
+          throw new BorrowStatusException("只有借阅中的借阅记录可标记为已逾期");
+        }
+        gapScore = 20;
+      }
+      case LOST -> {
+        if(borrow.getStatus() != BorrowStatus.BORROWED && borrow.getStatus() != BorrowStatus.OVERDUE){
+          throw new BorrowStatusException("只有借阅中或已逾期的借阅记录可标记为已丢失");
+        }
+        gapScore = 40;
+      }
     }
 
     // 生成违规记录
     ViolationRecord violationRecord = new ViolationRecord(borrow.getUserId(), borrow.getId(), violationType);
     int i1 = violationRecordMapper.insert(violationRecord);
+    if (i1 <= 0) {
+      throw new SqlFailedException("违规记录生成失败");
+    }
 
     // 相应扣除信用分
-    UserCredit userCredit = userCreditMapper.selectOne(
-            Wrappers.<UserCredit>lambdaQuery()
-                    .eq(UserCredit::getUserId, borrow.getUserId())
-    );
-    userCredit.setCreditScore(Math.max(userCredit.getCreditScore() - score, 0));
-    int i2 = userCreditMapper.updateById(userCredit);
-
-    if (i1 > 0 && i2 > 0) {
-      return ResponseData.success();
-    }
-    throw new SqlFailedException("违规行为处理失败");
+    return setCreditScore(borrow.getUserId(), gapScore, false);
   }
 
+  /**
+   * 处理正常借阅流程状态
+   * @param borrow 借阅记录
+   * @param status 借阅状态
+   * @return ResponseData
+   */
+  public ResponseData handleNormalStatus(Borrow borrow, BorrowStatus status) {
+    LocalDateTime now = LocalDateTime.now();
+    switch (status){
+      case CANCELLED -> {
+        if(borrow.getStatus() != BorrowStatus.APPLIED){
+          throw new BorrowStatusException("只有申请中的借阅记录可标记为已取消");
+        }
+      }
+      case BORROWED -> {
+        if(borrow.getStatus() != BorrowStatus.APPLIED){
+          throw new BorrowStatusException("只有申请中的借阅记录可标记为借阅中");
+        }
+        borrow.setBorrowTime(now);
+        borrow.setDueTime(now.plusDays(borrow.getBorrowDays()));
+      }
+      case RETURNED -> {
+        if(borrow.getStatus() != BorrowStatus.BORROWED && borrow.getStatus() != BorrowStatus.OVERDUE){
+          throw new BorrowStatusException("只有借阅中或已逾期的借阅记录可标记为已归还");
+        }
+        borrow.setReturnTime(now);
+        if(borrow.getStatus() == BorrowStatus.BORROWED){
+          setCreditScore(borrow.getUserId(), 5, true);
+        }
+      }
+    }
+    return ResponseData.success();
+  }
 
+  /**
+   * 信用分变化
+   * @param userId 用户id
+   * @param gapScore 信用分变化量
+   * @param isPlus true为加分，false为减分
+   * @return ResponseData
+   */
+  public ResponseData setCreditScore(Integer userId, Integer gapScore, Boolean isPlus){
+    UserCredit userCredit = userCreditMapper.selectOne(
+            Wrappers.<UserCredit>lambdaQuery()
+                    .eq(UserCredit::getUserId, userId)
+    );
+    Integer score =  isPlus ?
+            Math.min(userCredit.getCreditScore() + gapScore, 100) :
+            Math.max(userCredit.getCreditScore() - gapScore, 0);
+    userCredit.setCreditScore(score);
+    int i = userCreditMapper.updateById(userCredit);
 
-
+    if (i > 0) {
+      return ResponseData.success();
+    }
+    throw new SqlFailedException("信用分变化失败");
+  }
 
 
   @Override

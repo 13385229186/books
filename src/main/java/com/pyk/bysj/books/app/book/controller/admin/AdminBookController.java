@@ -132,40 +132,40 @@ public class AdminBookController {
 
   @PostMapping("/updateBook")
   public ResponseData updateBook(
-          @RequestParam("id")
+          @RequestParam("bookId")
           @NotNull(message = "id不能为空")
           @Positive(message = "id必须为正整数")
-          Integer id,
+          Integer bookId,
           @RequestPart("bookData")
           @Valid
           BookDTO bookDTO
   ){
     Book book = bookDTO.toEntity();
-    book.setId(id);
+    book.setId(bookId);
     return bookService.updateBook(book);
   }
 
   @PostMapping("/deleteBook")
   public ResponseData deleteBook(
-          @RequestParam("id")
+          @RequestParam("bookId")
           @NotNull(message = "id不能为空")
           @Positive(message = "id必须为正整数")
-          Integer id
+          Integer bookId
   ) {
-    return bookService.deleteBook(id);
+    return bookService.deleteBook(bookId);
   }
 
   @PostMapping("/setBookNumber")
   public ResponseData setBookNumber(
-          @RequestParam("id")
+          @RequestParam("bookId")
           @NotNull(message = "id不能为空")
           @Positive(message = "id必须为正整数")
-          Integer id,
+          Integer bookId,
           @RequestParam("bookNumber")
           @NotNull(message = "书本库存不能为空")
           @PositiveOrZero(message = "书本库存必须为非负整数") Integer bookNumber
   ){
-    return bookService.setBookNumber(id, bookNumber);
+    return bookService.setBookNumber(bookId, bookNumber);
   }
 
 
