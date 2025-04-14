@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ObjectToMapUtil {
+public class ParseUtil {
 
   /**
    * 将对象非空字段转为Map（下划线风格字段名）
@@ -40,4 +40,22 @@ public class ObjectToMapUtil {
   private static String camelToUnderline(String camel) {
     return camel.replaceAll("([A-Z])", "_$1").toLowerCase();
   }
+
+  /**
+   * 将StringID转为Long
+   * @param value StringId
+   * @return LongId
+   */
+  public static Long StringIdParseLong(String value) {
+    if (value == null) return null;
+    try {
+      long l = Long.parseLong(value.trim());
+      if (l < 0) throw new IllegalArgumentException("无效id");
+      return l;
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("无效id");
+    }
+  }
+
+
 }

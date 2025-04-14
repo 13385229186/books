@@ -1,4 +1,4 @@
-package com.pyk.bysj.books.exception.library;
+package com.pyk.bysj.books.exception.borrow;
 
 import com.pyk.bysj.books.exception.BaseException;
 

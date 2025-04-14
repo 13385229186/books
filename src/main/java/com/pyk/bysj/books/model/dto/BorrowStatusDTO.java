@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class BorrowStatusDTO {
   @NotNull(message = "ID不能为空")
   @Positive(message = "ID必须是正整数")
-  private Integer id;
+  private Long id;
   @NotBlank(message = "status不能为空")
   private String status;
 

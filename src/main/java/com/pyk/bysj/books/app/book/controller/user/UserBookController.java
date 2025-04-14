@@ -1,12 +1,10 @@
 package com.pyk.bysj.books.app.book.controller.user;
 
-import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
 import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.entity.Book;
-import com.pyk.bysj.books.model.entity.User;
-import com.pyk.bysj.books.utils.ObjectToMapUtil;
+import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -43,7 +41,7 @@ public class UserBookController {
     // 提取筛选条件
     Book book = bookDTO.toEntity();
     try {
-      Map<String, Object> bookMap = ObjectToMapUtil.toUnderlineMap(book);
+      Map<String, Object> bookMap = ParseUtil.toUnderlineMap(book);
 
       return ResponseData.success(bookService.bookList(bookMap, pageParam));
     } catch (IllegalAccessException e) {

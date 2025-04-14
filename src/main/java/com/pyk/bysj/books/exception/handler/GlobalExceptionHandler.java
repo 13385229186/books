@@ -1,11 +1,12 @@
 package com.pyk.bysj.books.exception.handler;
 
 import com.pyk.bysj.books.exception.book.BookUploadException;
+import com.pyk.bysj.books.exception.borrow.BorrowStatusException;
 import com.pyk.bysj.books.exception.general.NotExistException;
 import com.pyk.bysj.books.exception.general.OperationFailedException;
 import com.pyk.bysj.books.exception.general.SqlFailedException;
-import com.pyk.bysj.books.exception.library.BookNotAvailableException;
-import com.pyk.bysj.books.exception.library.CreditException;
+import com.pyk.bysj.books.exception.borrow.BookNotAvailableException;
+import com.pyk.bysj.books.exception.borrow.CreditException;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,7 +53,7 @@ public class GlobalExceptionHandler {
     return ResponseData.fail(ex.getCode(), ex.getMessage());
   }
 
-  // library
+  // borrow
   @ExceptionHandler(BookNotAvailableException.class)
   public ResponseData handleBookNotAvailableException(BookNotAvailableException ex) {
     return ResponseData.fail(ex.getCode(), ex.getMessage());
@@ -60,6 +61,11 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(CreditException.class)
   public ResponseData handleCreditException(CreditException ex) {
+    return ResponseData.fail(ex.getCode(), ex.getMessage());
+  }
+
+  @ExceptionHandler(BorrowStatusException.class)
+  public ResponseData handleBorrowStatusException(BorrowStatusException ex) {
     return ResponseData.fail(ex.getCode(), ex.getMessage());
   }
 

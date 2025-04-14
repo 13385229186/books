@@ -4,7 +4,9 @@ import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
 import com.pyk.bysj.books.app.borrow.service.user.UserBorrowService;
 import com.pyk.bysj.books.model.entity.User;
+import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,16 @@ public class UserBorrowController {
           Integer borrowDays
   ){
     return borrowService.borrowBook(user, bookId, borrowDays);
+  }
+
+  @PostMapping("/cancelBorrowBook")
+  public ResponseData cancelBorrowBook(
+          @CurrentUser User user,
+          @RequestParam("borrowId")
+          @NotBlank(message = "id不能为空")
+          String borrowId
+  ){
+    return borrowService.cancelBorrowBook(user, ParseUtil.StringIdParseLong(borrowId));
   }
 
 }

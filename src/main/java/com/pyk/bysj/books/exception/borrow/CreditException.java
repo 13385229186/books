@@ -1,7 +1,6 @@
-package com.pyk.bysj.books.exception.library;
+package com.pyk.bysj.books.exception.borrow;
 
 import com.pyk.bysj.books.exception.BaseException;
-import lombok.Builder;
 
 public class CreditException extends BaseException {
   public CreditException(Integer code, String message) {

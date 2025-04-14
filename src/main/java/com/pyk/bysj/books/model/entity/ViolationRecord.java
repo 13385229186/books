@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ViolationRecords {
+public class ViolationRecord {
   private Long id;
   private Integer userId;
   private Long borrowId;
@@ -19,4 +19,11 @@ public class ViolationRecords {
   private ViolationType violationType;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+
+  public ViolationRecord(Integer userId, Long borrowId, ViolationType violationType) {
+    this.userId = userId;
+    this.borrowId = borrowId;
+    this.violationType = violationType;
+  }
+
 }

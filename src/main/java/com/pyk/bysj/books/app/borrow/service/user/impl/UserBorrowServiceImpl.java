@@ -3,14 +3,16 @@ package com.pyk.bysj.books.app.borrow.service.user.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
+import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
 import com.pyk.bysj.books.app.borrow.service.user.UserBorrowService;
 import com.pyk.bysj.books.enums.BookStatus;
 import com.pyk.bysj.books.enums.BorrowStatus;
+import com.pyk.bysj.books.exception.borrow.BorrowStatusException;
+import com.pyk.bysj.books.exception.general.OperationFailedException;
 import com.pyk.bysj.books.exception.general.SqlFailedException;
-import com.pyk.bysj.books.exception.library.BookNotAvailableException;
-import com.pyk.bysj.books.exception.library.CreditException;
+import com.pyk.bysj.books.exception.borrow.BookNotAvailableException;
+import com.pyk.bysj.books.exception.borrow.CreditException;
 import com.pyk.bysj.books.mapper.BookMapper;
-import com.pyk.bysj.books.mapper.BookNumberMapper;
 import com.pyk.bysj.books.mapper.BorrowMapper;
 import com.pyk.bysj.books.mapper.UserCreditMapper;
 import com.pyk.bysj.books.model.entity.Book;
@@ -22,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @Transactional
 public class UserBorrowServiceImpl implements UserBorrowService {
@@ -30,14 +34,16 @@ public class UserBorrowServiceImpl implements UserBorrowService {
   private final AdminBookService adminBookService;
   private final BorrowMapper borrowMapper;
   private final UserCreditMapper userCreditMapper;
+  private final AdminBorrowService adminBorrowService;
 
   @Autowired
-  public UserBorrowServiceImpl(BookMapper bookMapper, UserBookService userBookService, AdminBookService adminBookService, BorrowMapper borrowMapper, UserCreditMapper userCreditMapper) {
+  public UserBorrowServiceImpl(BookMapper bookMapper, UserBookService userBookService, AdminBookService adminBookService, BorrowMapper borrowMapper, UserCreditMapper userCreditMapper, AdminBorrowService adminBorrowService) {
     this.bookMapper = bookMapper;
     this.userBookService = userBookService;
     this.adminBookService = adminBookService;
     this.borrowMapper = borrowMapper;
     this.userCreditMapper = userCreditMapper;
+    this.adminBorrowService = adminBorrowService;
   }
 
   @Override
@@ -96,5 +102,19 @@ public class UserBorrowServiceImpl implements UserBorrowService {
     }
 
     return ResponseData.success(borrow);
+  }
+
+  @Override
+  public ResponseData cancelBorrowBook(User user, Long borrowId) {
+    Borrow borrow = borrowMapper.selectById(borrowId);
+    // 检验借阅记录是否属于该用户
+    if(!Objects.equals(borrow.getUserId(), user.getId())){
+      throw new OperationFailedException(400, "用户不匹配，禁止操作");
+    }
+    // 检验借阅状态是否为“已申请”
+    if(!borrow.getStatus().equals(BorrowStatus.APPLIED) && !borrow.getStatus().equals(BorrowStatus.CANCELLED)){
+      throw new BorrowStatusException("当前借阅状态禁止操作");
+    }
+    return adminBorrowService.setBorrowStatus(borrowId, BorrowStatus.CANCELLED);
   }
 }

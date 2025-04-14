@@ -13,5 +13,12 @@ public interface UserBorrowService {
    */
   ResponseData borrowBook(User user, Integer bookId, Integer borrowDays);
 
+  /**
+   * 用户取消借阅申请
+   * @param user 用户
+   * @param borrowId 借阅记录id
+   * @return ResponseData
+   */
+  ResponseData cancelBorrowBook(User user, Long borrowId);
 
 }
