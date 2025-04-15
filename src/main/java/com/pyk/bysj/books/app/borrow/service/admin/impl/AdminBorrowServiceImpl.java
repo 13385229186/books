@@ -161,15 +161,12 @@ public class AdminBorrowServiceImpl implements AdminBorrowService {
     throw new SqlFailedException("信用分变化失败");
   }
 
-
   @Override
   public ResponseData handleBorrow(Long id) {
-    Borrow borrow = borrowMapper.selectById(id);
-    // 检验借阅初始状态
-    if(!borrow.getStatus().equals(BorrowStatus.APPLIED)){
-      throw new BorrowStatusException("当前借阅状态禁止操作");
-    }
-    // 修改为借阅中状态
     return setBorrowStatus(id, BorrowStatus.BORROWED);
   }
+
+
+
+
 }

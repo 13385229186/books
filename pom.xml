@@ -144,6 +144,13 @@
             <artifactId>hutool-core</artifactId>
             <version>5.8.36</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.yulichang/mybatis-plus-join -->
+        <dependency>
+            <groupId>com.github.yulichang</groupId>
+            <artifactId>mybatis-plus-join</artifactId>
+            <version>1.4.13</version>
+        </dependency>
     </dependencies>
 
     <build>

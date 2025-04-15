@@ -32,12 +32,6 @@ public class UserBookController {
   ){
     // 提取分页信息
     PageParam pageParam = bookDTO.getPageParam();
-    if (pageParam == null || pageParam.getCurrent() < 1 || pageParam.getPageSize() < 1) {
-      throw new IllegalArgumentException("分页参数不合法");
-    }
-    if (pageParam.getPageSize() > 100) {
-      throw new IllegalArgumentException("单页数量不能超过100");
-    }
     // 提取筛选条件
     Book book = bookDTO.toEntity();
     try {

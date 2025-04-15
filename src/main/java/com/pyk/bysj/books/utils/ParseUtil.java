@@ -23,7 +23,7 @@ public class ParseUtil {
     for (Field field : clazz.getDeclaredFields()) {
       field.setAccessible(true);
       Object value = field.get(object);
-      if (value != null) {
+      if (value != null && !"".equals(value)) {
         // 驼峰转下划线（符合MP的字段命名规则）
         String fieldName = camelToUnderline(field.getName());
         map.put(fieldName, value);
@@ -54,6 +54,35 @@ public class ParseUtil {
       return l;
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException("无效id");
+    }
+  }
+
+  /**
+   * 将其他类型数据转为Integer
+   * @param value 原始数据
+   * @param defaultValue 默认值
+   * @return Integer
+   */
+  public static Integer safeToInt(Object value, Integer defaultValue) {
+    if (value == null) return defaultValue;
+    try {
+      return Integer.valueOf(value.toString().trim());
+    } catch (NumberFormatException e) {
+      return defaultValue;
+    }
+  }
+
+  /**
+   * 将其他类型数据转为Integer
+   * @param value 原始数据
+   * @return Integer，失败默认返回null
+   */
+  public static Integer safeToInt(Object value) {
+    if (value == null) return null;
+    try {
+      return Integer.valueOf(value.toString().trim());
+    } catch (NumberFormatException e) {
+      return null;
     }
   }
 

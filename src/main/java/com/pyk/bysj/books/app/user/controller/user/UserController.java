@@ -68,6 +68,11 @@ public class UserController {
     return userService.updateInfo(user, name, phone);
   }
 
+  @PostMapping("/getCurrentUser")
+  public ResponseData getCurrentUser(@CurrentUser User user) {
+    return ResponseData.success(user);
+  }
+
 
 
 

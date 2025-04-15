@@ -3,6 +3,7 @@ package com.pyk.bysj.books.model.dto;
 import com.pyk.bysj.books.enums.BookStatus;
 import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.model.entity.Login;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class BookDTO {
 
   private Integer bookNumber = 0;
 
+  @Valid
   private PageParam pageParam = new PageParam();
 
   public Book toEntity(){

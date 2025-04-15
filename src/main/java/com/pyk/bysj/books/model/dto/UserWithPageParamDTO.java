@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import lombok.Data;
 
 @Data
-public class UserDTO {
+public class UserWithPageParamDTO {
   private Integer id;
   private String avatar;
   private String username;
@@ -17,4 +17,8 @@ public class UserDTO {
 //  public Role getRole() {
 //    return Role.fromValue(role);
 //  }
+
+  @Valid
+  private PageParam pageParam = new PageParam();
 }
+

@@ -2,18 +2,23 @@ package com.pyk.bysj.books.app.user.service.admin;
 
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.enums.UserStatus;
+import com.pyk.bysj.books.model.dto.ListQueryResult;
+import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.dto.UserDTO;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ResponseData;
 
 import java.util.List;
+import java.util.Map;
 
-public interface UserService {
+public interface AdminUserService {
   /**
    * 获取用户列表，支持分页、条件筛选
+   * @param userMap 筛选条件
+   * @param pageParam 分页参数
    * @return 用户列表
    */
-  List<User> userList(UserDTO userDTO);
+  ListQueryResult<UserDTO> userList(Map<String, Object> userMap, PageParam pageParam);
 
   /**
    * 修改用户角色权限

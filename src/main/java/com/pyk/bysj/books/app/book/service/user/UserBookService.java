@@ -13,6 +13,8 @@ import java.util.Map;
 public interface UserBookService {
   /**
    * 获取书籍列表，支持分页、条件筛选
+   * @param bookMap 筛选条件
+   * @param pageParam 分页参数
    * @return 书籍列表
    */
   ListQueryResult<Book> bookList(Map<String, Object> bookMap, PageParam pageParam);
