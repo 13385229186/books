@@ -7,6 +7,7 @@ import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,20 +47,20 @@ public class UserBookController {
   @PostMapping("/getBookById")
   public ResponseData getBookById(
           @RequestParam("bookId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
-          Integer bookId
+          @NotBlank(message = "id不能为空")
+          String id
   ) {
+    Integer bookId = ParseUtil.StringIdParseInteger(id);
     return ResponseData.success(bookService.getBookById(bookId));
   }
 
   @PostMapping("/getBookNumberById")
   public ResponseData getBookNumberById(
           @RequestParam("bookId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
-          Integer bookId
+          @NotBlank(message = "id不能为空")
+          String id
   ){
+    Integer bookId = ParseUtil.StringIdParseInteger(id);
     return ResponseData.success(bookService.getBookNumberById(bookId));
   }
 

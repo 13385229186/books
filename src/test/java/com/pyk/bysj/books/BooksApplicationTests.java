@@ -1,10 +1,18 @@
 package com.pyk.bysj.books;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.mapper.LoginMapper;
+import com.pyk.bysj.books.mapper.UserMapper;
+import com.pyk.bysj.books.model.dto.UserDTO;
 import com.pyk.bysj.books.model.entity.Login;
+import com.pyk.bysj.books.model.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.support.BeanDefinitionDsl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.BufferedReader;
@@ -22,7 +30,10 @@ class BooksApplicationTests {
 
   @Autowired
   private LoginMapper loginMapper;
-  @Autowired private PasswordEncoder passwordEncoder;
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+  @Autowired
+  private UserMapper userMapper;
 
   @Test void contextLoads() {
 
@@ -77,5 +88,24 @@ class BooksApplicationTests {
 
 
   }
+
+  @Test
+  void fromValueTest() {
+
+    Role user1 = Role.valueOf("USER");
+    Role user2 = Role.fromValue("用户");
+    System.out.println(user1 == user2);
+    System.out.println(user1 == Role.USER);
+    System.out.println(user2 == Role.USER);
+
+    Page<UserDTO> result = userMapper.selectJoinPage(
+            new Page<>(1, 10),
+            UserDTO.class,
+            JoinWrappers.lambda(User.class).selectAll().eq(User::getRole, user1));
+    System.out.println("result = " + result);
+
+  }
+
+
 
 }

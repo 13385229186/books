@@ -14,7 +14,4 @@ public class UserDTO {
   private Role role;
   private Integer creditScore;
 
-//  public Role getRole() {
-//    return Role.fromValue(role);
-//  }
 }

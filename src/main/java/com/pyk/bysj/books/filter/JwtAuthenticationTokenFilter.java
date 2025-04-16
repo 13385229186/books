@@ -4,7 +4,9 @@ import com.pyk.bysj.books.mapper.LoginMapper;
 import com.pyk.bysj.books.mapper.UserMapper;
 import com.pyk.bysj.books.model.LoginUserDetails;
 import com.pyk.bysj.books.model.entity.Login;
+import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.JwtTokenUtil;
+import com.pyk.bysj.books.utils.TokenBlacklist;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.IOException;
 import io.micrometer.common.util.StringUtils;
@@ -30,12 +32,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
   private final LoginMapper loginMapper;
   private final UserMapper userMapper;
   private final JwtTokenUtil jwtTokenUtil;
+  private final TokenBlacklist tokenBlacklist;
 
   @Autowired
-  public JwtAuthenticationTokenFilter(LoginMapper loginMapper, UserMapper userMapper, JwtTokenUtil jwtTokenUtil) {
+  public JwtAuthenticationTokenFilter(LoginMapper loginMapper, UserMapper userMapper, JwtTokenUtil jwtTokenUtil, TokenBlacklist tokenBlacklist) {
     this.loginMapper = loginMapper;
     this.userMapper = userMapper;
     this.jwtTokenUtil = jwtTokenUtil;
+    this.tokenBlacklist = tokenBlacklist;
   }
 
   @Override
@@ -52,7 +56,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
       SecurityContextHolder.getContext().setAuthentication(getAuthentication(token));
     } catch (Exception e) {
       System.out.println("认证失败！！！");
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "认证失败");
+      tokenBlacklist.addToBlacklist(token);
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "认证失败，请重新登录");
       return; // 终止后续处理
     }
 
@@ -68,8 +73,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     System.out.println("token: " + token);
     //判断token是否过期
     boolean expiration = jwtTokenUtil.isTokenExpired(token);
-    if (expiration){
-      throw new JwtException("token已过期");
+    if (expiration || tokenBlacklist.isBlacklisted(token)){
+      throw new JwtException("token已过期，请重新登录");
     }else{
       String username = jwtTokenUtil.getUserNameFromToken(token);
 
@@ -82,7 +87,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         throw new UsernameNotFoundException("用户不存在");
       }
       Login login = logins.get(0);
-      LoginUserDetails loginUserDetails = new LoginUserDetails(userMapper.selectById(login.getUserId()), login, "ROLE_" + userMapper.selectById(login.getUserId()).getRole());
+      User user = userMapper.selectById(login.getUserId());
+      LoginUserDetails loginUserDetails = new LoginUserDetails(user, login, "ROLE_" + user.getRole());
 
       System.out.println("loginUserDetails = " + loginUserDetails);
       

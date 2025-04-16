@@ -12,6 +12,8 @@ import com.pyk.bysj.books.app.user.service.admin.AdminUserService;
 import com.pyk.bysj.books.enums.BookStatus;
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.enums.UserStatus;
+import com.pyk.bysj.books.exception.general.NotExistException;
+import com.pyk.bysj.books.exception.general.SqlFailedException;
 import com.pyk.bysj.books.mapper.UserMapper;
 import com.pyk.bysj.books.model.dto.ListQueryResult;
 import com.pyk.bysj.books.model.dto.PageParam;
@@ -98,17 +100,51 @@ public class AdminUserServiceImpl implements AdminUserService {
 
   @Override
   public ResponseData changeRole(Integer id, Role role) {
-    return null;
+    // 检查用户是否存在
+    User user = userMapper.selectById(id);
+    if (user == null) {
+      throw new NotExistException("用户不存在");
+    }
+    // 修改角色
+    user.setRole(role);
+    int i = userMapper.updateById(user);
+    if (i == 1) {
+      return ResponseData.success();
+    }
+    throw new SqlFailedException("角色修改失败");
   }
 
   @Override
-  public User getUserById(Integer id) {
-    return null;
+  public UserDTO getUserById(Integer id) {
+    MPJLambdaWrapper<User> wrapper = JoinWrappers.lambda(User.class);
+    wrapper.selectAll()
+            .select(UserCredit::getCreditScore)
+            .innerJoin(UserCredit.class, UserCredit::getUserId, User::getId)
+            .select(Login::getUsername)
+            .innerJoin(Login.class, Login::getUserId, User::getId)
+            .eq(User::getId, id);
+
+    UserDTO userDTO = userMapper.selectJoinOne(UserDTO.class, wrapper);
+    if (userDTO == null) {
+      throw new NotExistException("用户不存在");
+    }
+    return userDTO;
   }
 
   @Override
   public ResponseData changeStatus(Integer id, UserStatus status) {
-    return null;
+    // 检查用户是否存在
+    User user = userMapper.selectById(id);
+    if (user == null) {
+      throw new NotExistException("用户不存在");
+    }
+    // 修改用户状态
+    user.setStatus(status);
+    int i = userMapper.updateById(user);
+    if (i == 1) {
+      return ResponseData.success();
+    }
+    throw new SqlFailedException("用户状态修改失败");
   }
 
   @Override

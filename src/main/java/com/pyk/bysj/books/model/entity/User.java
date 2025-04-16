@@ -30,4 +30,8 @@ public class User{
     this.role = role;
   }
 
+  public User(Integer id){
+    this.id = id;
+  }
+
 }

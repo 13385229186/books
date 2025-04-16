@@ -1,5 +1,6 @@
 package com.pyk.bysj.books.app.borrow.controller.user;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
 import com.pyk.bysj.books.app.borrow.service.user.UserBorrowService;
@@ -31,14 +32,18 @@ public class UserBorrowController {
   public ResponseData borrowBook(
           @CurrentUser User user,
           @RequestParam("bookId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
-          Integer bookId,
+          @NotBlank(message = "id不能为空")
+          String id,
           @RequestParam("borrowDays")
-          @NotNull(message = "天数不能为空")
-          @Positive(message = "天数必须为正整数")
-          Integer borrowDays
+          @NotBlank(message = "天数不能为空")
+          String bd
   ){
+    if(StringUtils.isBlank(user.getPhone())){
+      return ResponseData.fail("请先完善手机号等信息");
+    }
+
+    Integer bookId = ParseUtil.StringIdParseInteger(id);
+    Integer borrowDays = ParseUtil.StringIdParseInteger(bd, "天数");
     return borrowService.borrowBook(user, bookId, borrowDays);
   }
 

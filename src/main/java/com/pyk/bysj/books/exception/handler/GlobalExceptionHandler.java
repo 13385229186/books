@@ -7,9 +7,12 @@ import com.pyk.bysj.books.exception.general.OperationFailedException;
 import com.pyk.bysj.books.exception.general.SqlFailedException;
 import com.pyk.bysj.books.exception.borrow.BookNotAvailableException;
 import com.pyk.bysj.books.exception.borrow.CreditException;
+import com.pyk.bysj.books.exception.script.ScriptExecutionException;
+import com.pyk.bysj.books.exception.user.AvatarUploadException;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,6 +23,14 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+  /**
+   * 处理认证失败异常
+   */
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseData handleBadCredentialsException(BadCredentialsException ex) {
+    return ResponseData.fail(401, ex.getMessage());
+  }
 
   // validation
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -40,6 +51,18 @@ public class GlobalExceptionHandler {
             .map(v -> v.getPropertyPath() + ": " + v.getMessage())
             .collect(Collectors.toList());
     return ResponseData.fail(400, "参数校验失败", errors);
+  }
+
+  // script
+  @ExceptionHandler(ScriptExecutionException.class)
+  public ResponseData handleScriptExecutionException(ScriptExecutionException ex) {
+    return ResponseData.fail(ex.getCode(), ex.getMessage());
+  }
+
+  // user
+  @ExceptionHandler(AvatarUploadException.class)
+  public ResponseData handleAvatarUploadException(AvatarUploadException ex) {
+    return ResponseData.fail(ex.getCode(), ex.getMessage());
   }
 
   // book

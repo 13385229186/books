@@ -42,48 +42,6 @@ public class JwtTokenUtil {
             .compact();
   }
 
-
-//  /**
-//   * 获取schoolId
-//   *
-//   * @param request
-//   * @return
-//   */
-//  public Long getSchoolId(HttpServletRequest request) {
-//    Claims claims = getClaimsFromToken(request);
-//    if (PubUtils.isNotNull(claims)) {
-//      Long schoolId = claims.get(SCHOOL_ID, Long.class);
-//      return schoolId;
-//    } else {
-//      return null;
-//    }
-//  }
-//
-//  /**
-//   * 获取schoolId
-//   *
-//   * @param request
-//   * @return
-//   */
-//  public Long getUserId(HttpServletRequest request) {
-//    Claims claims = getClaimsFromToken(request);
-//    if (PubUtils.isNotNull(claims)) {
-//      return claims.get(USER_ID, Long.class);
-//    } else {
-//      return null;
-//    }
-//  }
-
-//  /**
-//   * 解析request中的token信息
-//   *
-//   * @param request
-//   * @return Map<String, Object>
-//   */
-//  public Map<String, Object> getUserDetailFromToken(HttpServletRequest request) {
-//    return getClaimsFromToken(request);
-//  }
-
   /**
    * 解析request中的token信息
    *

@@ -7,6 +7,8 @@ import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.BorrowStatusDTO;
 import com.pyk.bysj.books.model.dto.EbookDTO;
 import com.pyk.bysj.books.model.entity.Book;
+import com.pyk.bysj.books.utils.ParseUtil;
+import com.pyk.bysj.books.utils.PythonScriptExecutor;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -24,6 +26,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +49,7 @@ public class AdminBookController {
           @RequestPart("bookData") @Valid BookDTO bookDTO,
           @RequestPart("file") MultipartFile file,
           @RequestPart("cover") MultipartFile cover
-  ) throws IOException {
+  ){
     // 校验封面图片格式
     if (!cover.getContentType().startsWith("image/")) {
       throw new BookUploadException("书籍封面仅支持图片文件", 400);
@@ -61,11 +65,23 @@ public class AdminBookController {
     Path projectDir = Paths.get(System.getProperty("user.dir"));
     Path contentTempPath = projectDir.resolve("uploads/tmp/fileUploads").resolve(UUID.randomUUID() + ".epub");
     Path CoverTempPath = projectDir.resolve("uploads/tmp/coverUploads").resolve(UUID.randomUUID() + ".jpg");
-    file.transferTo(contentTempPath);
-    cover.transferTo(CoverTempPath);
+
+    try {
+      file.transferTo(contentTempPath);
+      cover.transferTo(CoverTempPath);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    // python脚本参数
+    Map<String, String> args = new HashMap<>();
+    args.put("bookName", bookDTO.getTitle());
+    args.put("filePath", contentTempPath.toString());
+    args.put("fileName", fileName);
+    args.put("coverPath", CoverTempPath.toString());
 
     // 调用Python解析
-    String result = executePythonParser(bookDTO.getTitle(), contentTempPath.toString(), fileName, CoverTempPath.toString());
+    String result = PythonScriptExecutor.executePythonScript("epub_parser.py", args, 10);
 
     // 添加书籍基本信息
     EbookDTO ebookDTO = JSON.parseObject(result, EbookDTO.class);
@@ -133,13 +149,13 @@ public class AdminBookController {
   @PostMapping("/updateBook")
   public ResponseData updateBook(
           @RequestParam("bookId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
-          Integer bookId,
+          @NotBlank(message = "id不能为空")
+          String id,
           @RequestPart("bookData")
           @Valid
           BookDTO bookDTO
   ){
+    Integer bookId = ParseUtil.StringIdParseInteger(id);
     Book book = bookDTO.toEntity();
     book.setId(bookId);
     return bookService.updateBook(book);
@@ -148,23 +164,24 @@ public class AdminBookController {
   @PostMapping("/deleteBook")
   public ResponseData deleteBook(
           @RequestParam("bookId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
-          Integer bookId
+          @NotBlank(message = "id不能为空")
+          String id
   ) {
+    Integer bookId = ParseUtil.StringIdParseInteger(id);
     return bookService.deleteBook(bookId);
   }
 
   @PostMapping("/setBookNumber")
   public ResponseData setBookNumber(
           @RequestParam("bookId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
-          Integer bookId,
+          @NotBlank(message = "id不能为空")
+          String id,
           @RequestParam("bookNumber")
-          @NotNull(message = "书本库存不能为空")
-          @PositiveOrZero(message = "书本库存必须为非负整数") Integer bookNumber
+          @NotBlank(message = "书本库存不能为空")
+          String bk
   ){
+    Integer bookId = ParseUtil.StringIdParseInteger(id);
+    Integer bookNumber = ParseUtil.StringIdParseInteger(bk, "书本库存");
     return bookService.setBookNumber(bookId, bookNumber);
   }
 

@@ -2,10 +2,12 @@ package com.pyk.bysj.books.app.borrow.controller.admin;
 
 import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
 import com.pyk.bysj.books.enums.BorrowStatus;
+import com.pyk.bysj.books.model.dto.BorrowListDTO;
 import com.pyk.bysj.books.model.dto.BorrowStatusDTO;
 import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
@@ -34,11 +36,21 @@ public class AdminBorrowController {
   @PostMapping("/handleBorrow")
   public ResponseData handleBorrow(
           @RequestParam("borrowId")
-          @NotNull(message = "id不能为空")
-          @Positive(message = "id必须为正整数")
+          @NotBlank(message = "id不能为空")
           String borrowId
   ){
     return adminBorrowService.handleBorrow(ParseUtil.StringIdParseLong(borrowId));
+  }
+
+  @PostMapping("/borrowList")
+  public ResponseData borrowList(
+          @RequestBody @Valid BorrowListDTO borrowListDTO
+  ){
+
+
+
+
+    return null;
   }
 
 

@@ -11,12 +11,12 @@ public class UserWithPageParamDTO {
   private String username;
   private String name;
   private String phone;
-  private Role role;
+  private String role;
   private Integer creditScore;
 
-//  public Role getRole() {
-//    return Role.fromValue(role);
-//  }
+  public Role getRole() {
+    return Role.fromValue(role);
+  }
 
   @Valid
   private PageParam pageParam = new PageParam();

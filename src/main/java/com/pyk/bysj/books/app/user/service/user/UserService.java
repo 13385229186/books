@@ -1,8 +1,12 @@
 package com.pyk.bysj.books.app.user.service.user;
 
 import com.pyk.bysj.books.model.dto.LoginDTO;
+import com.pyk.bysj.books.model.dto.UserDTO;
+import com.pyk.bysj.books.model.dto.UserUpdateDTO;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ResponseData;
+
+import java.util.Map;
 
 public interface UserService {
   /**
@@ -23,11 +27,12 @@ public interface UserService {
 
   /**
    * 完善或修改用户信息
-   * @param name 真实姓名
-   * @param phone 手机号
+   * @param user 当前用户
+   * @param userUpdateDTO 修改项
+   * @param token 用户jwt
    * @return ResponseData
    */
-  ResponseData updateInfo(User user, String name, String phone);
+  ResponseData updateInfo(User user, UserUpdateDTO userUpdateDTO, String token);
 
   /**
    * 修改密码
@@ -36,5 +41,7 @@ public interface UserService {
    * @return ResponseData
    */
   ResponseData updatePassword(String oldPassword, String newPassword);
+
+
 
 }

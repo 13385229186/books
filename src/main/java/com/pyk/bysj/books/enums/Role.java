@@ -21,8 +21,7 @@ public enum Role {
    */
   public static Role fromValue(String value) {
     if (StringUtils.isBlank(value)) {
-      return null;
-//      throw new IllegalArgumentException("角色类型不能为空");
+      throw new IllegalArgumentException("角色类型不能为空");
     }
     for (Role role : values()) {
       if (role.getDescription().equalsIgnoreCase(value)) {

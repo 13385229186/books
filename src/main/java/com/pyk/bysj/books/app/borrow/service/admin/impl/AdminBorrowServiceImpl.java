@@ -68,7 +68,7 @@ public class AdminBorrowServiceImpl implements AdminBorrowService {
    * @param violationType 违规类型
    * @return ResponseData
    */
-  public ResponseData handleViolationStatus(Borrow borrow, ViolationType violationType) {
+  private ResponseData handleViolationStatus(Borrow borrow, ViolationType violationType) {
     int gapScore = 0; // 即将扣除的信用分
     // 判断违规类型
     switch (violationType) {
@@ -109,7 +109,7 @@ public class AdminBorrowServiceImpl implements AdminBorrowService {
    * @param status 借阅状态
    * @return ResponseData
    */
-  public ResponseData handleNormalStatus(Borrow borrow, BorrowStatus status) {
+  private ResponseData handleNormalStatus(Borrow borrow, BorrowStatus status) {
     LocalDateTime now = LocalDateTime.now();
     switch (status){
       case CANCELLED -> {
@@ -144,7 +144,7 @@ public class AdminBorrowServiceImpl implements AdminBorrowService {
    * @param isPlus true为加分，false为减分
    * @return ResponseData
    */
-  public ResponseData setCreditScore(Integer userId, Integer gapScore, Boolean isPlus){
+  private ResponseData setCreditScore(Integer userId, Integer gapScore, Boolean isPlus){
     UserCredit userCredit = userCreditMapper.selectOne(
             Wrappers.<UserCredit>lambdaQuery()
                     .eq(UserCredit::getUserId, userId)

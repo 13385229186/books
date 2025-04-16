@@ -31,9 +31,9 @@ public interface AdminUserService {
   /**
    * 根据用户id获取用户详情
    * @param id 用户id
-   * @return User用户详情
+   * @return UserDTO用户详情
    */
-  User getUserById(Integer id);
+  UserDTO getUserById(Integer id);
 
   /**
    * 根据用户id修改用户账户状态
