@@ -1,5 +1,8 @@
 package com.pyk.bysj.books.app.borrow.service.user;
 
+import com.pyk.bysj.books.model.dto.BorrowDTO;
+import com.pyk.bysj.books.model.dto.ListQueryResult;
+import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ResponseData;
 
@@ -21,4 +24,11 @@ public interface UserBorrowService {
    */
   ResponseData cancelBorrowBook(User user, Long borrowId);
 
+  /**
+   * 获取当前用户的借阅信息列表
+   * @param userId 用户id
+   * @param pageParam 分页信息
+   * @return ListQueryResult<BorrowDTO>
+   */
+  ListQueryResult<BorrowDTO> borrowListByUserId(Integer userId, PageParam pageParam);
 }

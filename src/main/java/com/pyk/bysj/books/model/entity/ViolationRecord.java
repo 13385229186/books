@@ -14,14 +14,16 @@ import java.time.LocalDateTime;
 public class ViolationRecord {
   private Long id;
   private Integer userId;
+  private Integer bookId;
   private Long borrowId;
   @Getter
   private ViolationType violationType;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public ViolationRecord(Integer userId, Long borrowId, ViolationType violationType) {
+  public ViolationRecord(Integer userId, Integer bookId, Long borrowId, ViolationType violationType) {
     this.userId = userId;
+    this.bookId = bookId;
     this.borrowId = borrowId;
     this.violationType = violationType;
   }

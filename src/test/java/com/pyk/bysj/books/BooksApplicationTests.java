@@ -1,12 +1,19 @@
 package com.pyk.bysj.books;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
+import com.pyk.bysj.books.app.borrow.service.admin.impl.AdminBorrowServiceImpl;
+import com.pyk.bysj.books.enums.BorrowStatus;
 import com.pyk.bysj.books.enums.Role;
+import com.pyk.bysj.books.enums.ViolationType;
+import com.pyk.bysj.books.mapper.BorrowMapper;
 import com.pyk.bysj.books.mapper.LoginMapper;
 import com.pyk.bysj.books.mapper.UserMapper;
 import com.pyk.bysj.books.model.dto.UserDTO;
+import com.pyk.bysj.books.model.entity.Borrow;
 import com.pyk.bysj.books.model.entity.Login;
 import com.pyk.bysj.books.model.entity.User;
 import org.junit.jupiter.api.Test;
@@ -21,11 +28,14 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-class BooksApplicationTests {
+class BooksApplicationTests extends ServiceImpl<BorrowMapper, Borrow> {
 
 
   @Autowired
@@ -34,6 +44,12 @@ class BooksApplicationTests {
   private PasswordEncoder passwordEncoder;
   @Autowired
   private UserMapper userMapper;
+
+  @Autowired
+  private BorrowMapper borrowMapper;
+
+  @Autowired
+  private AdminBorrowServiceImpl adminBorrowService;
 
   @Test void contextLoads() {
 
@@ -104,6 +120,30 @@ class BooksApplicationTests {
             JoinWrappers.lambda(User.class).selectAll().eq(User::getRole, user1));
     System.out.println("result = " + result);
 
+  }
+
+  @Test
+  void myTest(){
+    Collection<Long> borrowIds = new ArrayList<>();
+    borrowIds.add(1L);
+    borrowIds.add(2L);
+    borrowIds.add(4L);
+    borrowIds.add(5L);
+    borrowIds.add(6L);
+    // 批量查询已申请状态
+    List<Borrow> borrows = borrowMapper.selectByIds(borrowIds).stream()
+            .filter(b -> b.getStatus() == BorrowStatus.APPLIED)
+            .toList();
+    borrows.forEach(System.out::println);
+    borrows.forEach(b -> {
+//      adminBorrowService.handleViolationStatus(b, ViolationType.EXPIRED);
+      b.setStatus(BorrowStatus.EXPIRED);
+    });
+    boolean b = updateBatchById(borrows);
+    System.out.println("b = " + b);
+
+    // 批量更新状态
+//    return ;
   }
 
 

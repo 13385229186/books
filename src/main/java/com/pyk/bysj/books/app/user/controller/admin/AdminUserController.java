@@ -38,8 +38,8 @@ public class AdminUserController {
     PageParam pageParam = userWithPageParamDTO.getPageParam();
     // 提取筛选条件
     try {
-      Map<String, Object> userMap = ParseUtil.toUnderlineMap(userWithPageParamDTO);
-      userMap.remove("page_param");
+      Map<String, Object> userMap = ParseUtil.toMap(userWithPageParamDTO);
+      userMap.remove("pageParam");
       System.out.println(userMap);
 
       return ResponseData.success(adminUserService.userList(userMap, pageParam));

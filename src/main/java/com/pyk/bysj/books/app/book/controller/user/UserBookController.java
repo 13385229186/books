@@ -36,7 +36,7 @@ public class UserBookController {
     // 提取筛选条件
     Book book = bookDTO.toEntity();
     try {
-      Map<String, Object> bookMap = ParseUtil.toUnderlineMap(book);
+      Map<String, Object> bookMap = ParseUtil.toMap(book);
 
       return ResponseData.success(bookService.bookList(bookMap, pageParam));
     } catch (IllegalAccessException e) {

@@ -17,7 +17,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -106,6 +109,21 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseData handleAccessDeniedException(AccessDeniedException ex) {
+    return ResponseData.fail(400, ex.getMessage());
+  }
+
+  @ExceptionHandler(MissingServletRequestPartException.class)
+  public ResponseData handleMissingServletRequestPartException(MissingServletRequestPartException ex) {
+    return ResponseData.fail(400, ex.getMessage());
+  }
+
+  @ExceptionHandler(MultipartException.class)
+  public ResponseData handleMultipartException(MultipartException ex) {
+    return ResponseData.fail(400, ex.getMessage());
+  }
+
+  @ExceptionHandler(DateTimeParseException.class)
+  public ResponseData handleDateTimeParseException(DateTimeParseException ex) {
     return ResponseData.fail(400, ex.getMessage());
   }
 

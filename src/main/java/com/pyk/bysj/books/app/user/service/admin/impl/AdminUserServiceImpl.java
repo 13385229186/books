@@ -64,7 +64,7 @@ public class AdminUserServiceImpl implements AdminUserService {
           case "role":
             wrapper.eq(User::getRole, Role.fromValue(value.toString()));
             break;
-          case "credit_score":
+          case "creditScore":
             wrapper.select(UserCredit::getCreditScore)
                     .innerJoin(UserCredit.class, UserCredit::getUserId, User::getId)
                     .eq(UserCredit::getCreditScore, Integer.parseInt(value.toString()));

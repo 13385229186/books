@@ -53,3 +53,7 @@ logging:
       max-file-size: 10MB
       max-history: 7
       file-name-pattern: logs/app-%d{yyyy-MM-dd}.%i.log  # 按日期滚动
+
+app:
+#  borrow-expiration-time: 86400 # 24小时（秒）
+  borrow-expiration-time: 5 # 5秒

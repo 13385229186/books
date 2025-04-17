@@ -1,12 +1,13 @@
 package com.pyk.bysj.books.model.dto;
 
 import com.pyk.bysj.books.enums.BorrowStatus;
+import com.pyk.bysj.books.model.entity.Borrow;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class BorrowListDTO {
+public class BorrowDTO {
   // 用户信息
   private String name;
   private String phone;
@@ -15,17 +16,22 @@ public class BorrowListDTO {
   private String title; // 书名
 
   // 借阅信息
-  private Integer id;
+  private Long id;
   private Integer userId;
   private Integer bookId;
   private Integer borrowDays;
   private LocalDateTime borrowTime;
   private LocalDateTime dueTime;
   private LocalDateTime returnTime;
-  private String status;
+  private BorrowStatus status;
+  private LocalDateTime createdAt;
 
-  public BorrowStatus getStatus() {
-    return BorrowStatus.fromValue(status);
+  /**
+   * 转为Borrow对象
+   * @return Borrow
+   */
+  public Borrow toBorrow(){
+    return new Borrow(id, userId, bookId, borrowDays, borrowTime, dueTime, returnTime, status, createdAt);
   }
 
 }

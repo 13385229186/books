@@ -3,19 +3,26 @@ package com.pyk.bysj.books.utils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ParseUtil {
 
   /**
-   * 将对象非空字段转为Map（下划线风格字段名）
+   * 将对象非空字段转为Map
    * @param object 对象
    * @return 对象中非空字段组合的Map
    * @param <T> 泛型
    * @throws IllegalAccessException 异常
    */
-  public static <T> Map<String, Object> toUnderlineMap(T object) throws IllegalAccessException {
+  public static <T> Map<String, Object> toMap(T object) throws IllegalAccessException {
     Map<String, Object> map = new HashMap<>();
     if (object == null) {
       return map;
@@ -26,9 +33,7 @@ public class ParseUtil {
       field.setAccessible(true);
       Object value = field.get(object);
       if (value != null && !"".equals(value)) {
-        // 驼峰转下划线（符合MP的字段命名规则）
-        String fieldName = camelToUnderline(field.getName());
-        map.put(fieldName, value);
+        map.put(field.getName(), value);
       }
     }
     return map;
@@ -133,6 +138,45 @@ public class ParseUtil {
         }
       }
     });
+  }
+
+  /**
+   * 多格式尝试解析日期时间
+   * @param dateTimeStr 日期时间字符串
+   * @return LocalDateTime或抛出解析失败异常
+   */
+  public static LocalDateTime parseFlexibleDateTime(String dateTimeStr) {
+    if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
+      return null;
+    }
+
+    // 支持多种常见格式
+    List<DateTimeFormatter> formatters = Arrays.asList(
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME,      // "yyyy-MM-dd'T'HH:mm:ss"
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyyMMddHHmmss"),
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME      // 带时区
+    );
+
+    for (DateTimeFormatter formatter : formatters) {
+      try {
+        if (formatter == DateTimeFormatter.ISO_OFFSET_DATE_TIME) {
+          return LocalDateTime.ofInstant(Instant.parse(dateTimeStr), ZoneId.systemDefault());
+        }
+        return LocalDateTime.parse(dateTimeStr, formatter);
+      } catch (DateTimeParseException e) {
+        throw new DateTimeParseException(e.getMessage(), dateTimeStr, 0);
+      }
+    }
+
+    // 尝试解析时间戳
+    try {
+      long timestamp = Long.parseLong(dateTimeStr);
+      return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+    } catch (NumberFormatException e) {
+      throw new DateTimeParseException("无法解析日期时间: " + dateTimeStr, dateTimeStr, 0);
+    }
   }
 
 

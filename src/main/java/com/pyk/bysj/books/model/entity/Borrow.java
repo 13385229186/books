@@ -29,4 +29,17 @@ public class Borrow {
     this.bookId = bookId;
     this.borrowDays = borrowDays;
   }
+
+  public Borrow(Long id, Integer userId, Integer bookId, Integer borrowDays, LocalDateTime borrowTime, LocalDateTime dueTime, LocalDateTime returnTime, BorrowStatus status, LocalDateTime createdAt) {
+    this.id = id;
+    this.userId = userId;
+    this.bookId = bookId;
+    this.borrowDays = borrowDays;
+    this.borrowTime = borrowTime;
+    this.dueTime = dueTime;
+    this.returnTime = returnTime;
+    this.status = status;
+    this.createdAt = createdAt;
+  }
+
 }

@@ -3,29 +3,35 @@ package com.pyk.bysj.books.app.borrow.controller.user;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
+import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
 import com.pyk.bysj.books.app.borrow.service.user.UserBorrowService;
+import com.pyk.bysj.books.model.dto.BorrowWithPageParamDTO;
+import com.pyk.bysj.books.model.dto.PageParam;
+import com.pyk.bysj.books.model.dto.UserBorrowWithPageParamDTO;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Validated
 @RestController
 @RequestMapping("/user")
 public class UserBorrowController {
   private final UserBorrowService borrowService;
+  private final AdminBorrowService adminBorrowService;
 
   @Autowired
-  public UserBorrowController(UserBorrowService borrowService) {
+  public UserBorrowController(UserBorrowService borrowService, AdminBorrowService adminBorrowService) {
     this.borrowService = borrowService;
+    this.adminBorrowService = adminBorrowService;
   }
 
   @PostMapping("/borrowBook")
@@ -55,6 +61,28 @@ public class UserBorrowController {
           String borrowId
   ){
     return borrowService.cancelBorrowBook(user, ParseUtil.StringIdParseLong(borrowId));
+  }
+
+  @PostMapping("/borrowListByUserId")
+  public ResponseData borrowListByUserId(
+          @CurrentUser User user,
+          @RequestPart("borrowData") @Valid UserBorrowWithPageParamDTO userBorrowWithPageParamDTO
+  ){
+    // 提取筛选条件，加入当前用户id
+    BorrowWithPageParamDTO borrowWithPageParamDTO = userBorrowWithPageParamDTO.toBorrowWithPageParamDTO();
+    borrowWithPageParamDTO.setUserId(user.getId());
+    // 提取分页信息
+    PageParam pageParam = borrowWithPageParamDTO.getPageParam();
+    // 提取筛选条件
+    try {
+      Map<String, Object> borrowMap = ParseUtil.toMap(borrowWithPageParamDTO);
+      borrowMap.remove("pageParam");
+      System.out.println(borrowMap);
+
+      return ResponseData.success(adminBorrowService.borrowList(borrowMap, pageParam));
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }

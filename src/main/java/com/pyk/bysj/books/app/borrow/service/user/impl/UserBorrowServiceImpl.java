@@ -15,6 +15,9 @@ import com.pyk.bysj.books.exception.borrow.CreditException;
 import com.pyk.bysj.books.mapper.BookMapper;
 import com.pyk.bysj.books.mapper.BorrowMapper;
 import com.pyk.bysj.books.mapper.UserCreditMapper;
+import com.pyk.bysj.books.model.dto.BorrowDTO;
+import com.pyk.bysj.books.model.dto.ListQueryResult;
+import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.model.entity.Borrow;
 import com.pyk.bysj.books.model.entity.User;
@@ -24,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -116,5 +120,10 @@ public class UserBorrowServiceImpl implements UserBorrowService {
       throw new BorrowStatusException("当前借阅状态禁止操作");
     }
     return adminBorrowService.setBorrowStatus(borrowId, BorrowStatus.CANCELLED);
+  }
+
+  @Override
+  public ListQueryResult<BorrowDTO> borrowListByUserId(Integer userId, PageParam pageParam) {
+    return adminBorrowService.borrowList(Map.of("userId", userId), pageParam);
   }
 }
