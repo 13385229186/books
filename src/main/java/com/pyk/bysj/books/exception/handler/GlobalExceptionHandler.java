@@ -103,7 +103,6 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseData handleIllegalArgumentException(IllegalArgumentException ex) {
-    System.out.println("******************");
     return ResponseData.fail(400, ex.getMessage());
   }
 

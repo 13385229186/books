@@ -103,6 +103,7 @@ public class PythonScriptExecutor {
   private static ProcessResult executeProcess(List<String> command,
                                               long timeoutMinutes) throws IOException, InterruptedException, TimeoutException {
     ProcessBuilder pb = new ProcessBuilder(command);
+    pb.environment().put("PYTHONIOENCODING", "utf-8");
     pb.redirectErrorStream(false); // 分开获取stdout和stderr
 
     Process process = pb.start();

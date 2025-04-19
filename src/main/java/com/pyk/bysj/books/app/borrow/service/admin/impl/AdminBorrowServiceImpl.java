@@ -276,12 +276,12 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
                     returnTime.truncatedTo(ChronoUnit.DAYS),
                     returnTime.truncatedTo(ChronoUnit.DAYS).plusDays(1));
             break;
-          case "createTime":
-            LocalDateTime createTime = ParseUtil.parseFlexibleDateTime(value.toString());
+          case "createdAt":
+            LocalDateTime createAt = ParseUtil.parseFlexibleDateTime(value.toString());
             // 匹配当天的记录
             wrapper.between(Borrow::getCreatedAt,
-                    createTime.truncatedTo(ChronoUnit.DAYS),
-                    createTime.truncatedTo(ChronoUnit.DAYS).plusDays(1));
+                    createAt.truncatedTo(ChronoUnit.DAYS),
+                    createAt.truncatedTo(ChronoUnit.DAYS).plusDays(1));
             break;
 
           // 模糊搜索字段
@@ -409,6 +409,15 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
             break;
           case "phone":
             wrapper.eq(User::getPhone, value.toString());
+            break;
+
+          //范围匹配字段
+          case "createdAt":
+            LocalDateTime createAt = ParseUtil.parseFlexibleDateTime(value.toString());
+            // 匹配当天的记录
+            wrapper.between(Borrow::getCreatedAt,
+                    createAt.truncatedTo(ChronoUnit.DAYS),
+                    createAt.truncatedTo(ChronoUnit.DAYS).plusDays(1));
             break;
 
           // 模糊搜索字段

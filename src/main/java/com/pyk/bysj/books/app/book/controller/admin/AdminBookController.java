@@ -2,6 +2,7 @@ package com.pyk.bysj.books.app.book.controller.admin;
 
 import com.alibaba.fastjson2.JSON;
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
+import com.pyk.bysj.books.config.UploadTmpConfig;
 import com.pyk.bysj.books.exception.book.BookUploadException;
 import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.BorrowStatusDTO;
@@ -15,6 +16,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -33,117 +36,99 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Validated
 @RestController
 @RequestMapping("/admin")
 public class AdminBookController {
+  private final UploadTmpConfig uploadTmpConfig;
   private final AdminBookService bookService;
 
   @Autowired
-  public AdminBookController(AdminBookService bookService) {
+  public AdminBookController(UploadTmpConfig uploadTmpConfig, AdminBookService bookService) {
+    this.uploadTmpConfig = uploadTmpConfig;
     this.bookService = bookService;
   }
 
   @PostMapping("/bookUpload")
   public ResponseData bookUpload(
           @RequestPart("bookData") @Valid BookDTO bookDTO,
-          @RequestPart("file") MultipartFile file,
-          @RequestPart("cover") MultipartFile cover
+          @RequestPart(value = "file", required = false) MultipartFile file,
+          @RequestPart(value = "cover", required = false) MultipartFile cover
   ){
-    // 校验封面图片格式
-    if (!cover.getContentType().startsWith("image/")) {
-      throw new BookUploadException("书籍封面仅支持图片文件", 400);
-    }
-
-    String fileName = file.getOriginalFilename();
-    // 校验电子书EPUB格式
-    if(!fileName.endsWith(".epub")) {
-      throw new BookUploadException("电子书仅支持EPUB格式", 400);
-    }
-
-    // 临时存储
-    Path projectDir = Paths.get(System.getProperty("user.dir"));
-    Path contentTempPath = projectDir.resolve("uploads/tmp/fileUploads").resolve(UUID.randomUUID() + ".epub");
-    Path CoverTempPath = projectDir.resolve("uploads/tmp/coverUploads").resolve(UUID.randomUUID() + ".jpg");
-
-    try {
-      file.transferTo(contentTempPath);
-      cover.transferTo(CoverTempPath);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    // python脚本参数
-    Map<String, String> args = new HashMap<>();
-    args.put("bookName", bookDTO.getTitle());
-    args.put("filePath", contentTempPath.toString());
-    args.put("fileName", fileName);
-    args.put("coverPath", CoverTempPath.toString());
-
-    // 调用Python解析
-    String result = PythonScriptExecutor.executePythonScript("epub_parser.py", args, 10);
-
-    // 添加书籍基本信息
-    EbookDTO ebookDTO = JSON.parseObject(result, EbookDTO.class);
     Book book = bookDTO.toEntity();
-    book.setCover(ebookDTO.getCover_path());
-    book.setEbook(ebookDTO.getOriginal_path());
+
+    // 空文件检查
+    boolean hasFile = file != null && !file.isEmpty();
+    boolean hasCover = cover != null && !cover.isEmpty();
+    System.out.println(hasFile);
+    System.out.println(hasCover);
+
+    if(hasFile || hasCover){
+      // python脚本参数
+      Map<String, String> args = new HashMap<>();
+      args.put("bookName", bookDTO.getTitle());
+      args.put("overwrite", "true");
+
+      Path contentTempPath = null;
+      Path coverTempPath = null;
+      try {
+        // 临时存储路径
+        Path projectDir = Path.of(uploadTmpConfig.getBaseDir());
+        contentTempPath = projectDir.resolve(uploadTmpConfig.getFileUploads()).resolve(UUID.randomUUID() + ".pdf");
+        coverTempPath = projectDir.resolve(uploadTmpConfig.getCoverUploads()).resolve(UUID.randomUUID() + ".jpg");
+
+        if(hasCover){
+          // 校验封面图片格式
+          String originalFilename = Objects.requireNonNull(cover.getOriginalFilename());
+          if (!originalFilename.endsWith(".jpg") && !originalFilename.endsWith(".jpeg") && !originalFilename.endsWith(".png")) {
+            throw new BookUploadException("书籍封面暂仅支持jpg、jpeg、png格式", 400);
+          }
+          // 临时存储封面
+          try {
+            cover.transferTo(coverTempPath);
+          } catch (IOException e) {
+            throw new BookUploadException("封面上传失败", 500);
+          }
+          // 传递封面图片临时保存本地路径参数
+          args.put("coverPath", coverTempPath.toString());
+        }
+
+        if(hasFile){
+          // 校验电子书pdf格式
+          String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
+          if(!originalFilename.endsWith(".pdf")) {
+            throw new BookUploadException("电子版暂仅支持pdf格式", 400);
+          }
+          // 临时存储电子书
+          try {
+            file.transferTo(contentTempPath);
+          } catch (IOException e) {
+            throw new BookUploadException("电子书上传失败", 500);
+          }
+          // 传递电子书临时保存本地路径参数
+          args.put("filePath", contentTempPath.toString());
+        }
+
+        // 调用Python解析
+        String result = PythonScriptExecutor.executePythonScript("book_upload.py", args, 10);
+
+        // 添加书籍基本信息
+        EbookDTO ebookDTO = JSON.parseObject(result, EbookDTO.class);
+        book.setCover(ebookDTO.getCover_path());
+        book.setEbook(ebookDTO.getOriginal_path());
+      } finally {
+        // 清理临时文件
+        try {
+          if (contentTempPath != null) Files.deleteIfExists(contentTempPath);
+          if (coverTempPath != null) Files.deleteIfExists(coverTempPath);
+        } catch (IOException e) {
+          log.error("临时文件删除失败", e);
+        }
+      }
+    }
 
     return bookService.addBook(book, bookDTO.getBookNumber());
-  }
-
-  private String executePythonParser(String bookName, String filePath, String fileName, String coverPath) throws UnsupportedEncodingException {
-    // 获取python脚本位置
-    URL resourceUrl = Objects.requireNonNull(getClass().getResource("/scripts/epub_parser.py"));
-    String decodedPath = URLDecoder.decode(resourceUrl.getPath(), StandardCharsets.UTF_8);
-
-    // 处理Windows路径开头的/
-    String safePath = decodedPath.startsWith("/") && System.getProperty("os.name").contains("Win")
-            ? decodedPath.substring(1)
-            : decodedPath;
-    System.out.println(safePath);
-
-    // 建立进程调用脚本
-    ProcessBuilder pb = new ProcessBuilder(
-            "python",
-            safePath,
-            "--bookName", bookName,
-            "--filePath", filePath.replace("\\", "/"),
-            "--fileName", fileName,
-            "--coverPath", coverPath.replace("\\", "/")
-    );
-
-    try {
-      // 启动进程
-      Process p = pb.start();
-
-      // 读取stdout和stderr
-      String output = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))
-              .lines().collect(Collectors.joining("\n"));
-
-      String error = new BufferedReader(new InputStreamReader(p.getErrorStream(), StandardCharsets.UTF_8))
-              .lines().collect(Collectors.joining("\n"));
-
-      System.out.println("output: " + output);
-      System.out.println("error = " + error);
-
-      // 带超时等待
-      boolean finished = p.waitFor(10, TimeUnit.MINUTES);
-      if (!finished) {
-        p.destroy();
-        throw new BookUploadException("解析超时", 500);
-      }
-
-      // 检查Python是否报错
-      if (p.exitValue() != 0) {
-        System.err.println("Python脚本错误: " + (error.isEmpty() ? output : error));
-        throw new BookUploadException("上传解析出错",500);
-      }
-
-      return output;
-    } catch (IOException | InterruptedException e) {
-      throw new BookUploadException("执行失败: " + e.getMessage(), 500);
-    }
   }
 
   @PostMapping("/updateBook")

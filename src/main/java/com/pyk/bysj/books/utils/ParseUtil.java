@@ -1,9 +1,11 @@
 package com.pyk.bysj.books.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ParseUtil {
 
   /**
@@ -150,32 +153,55 @@ public class ParseUtil {
       return null;
     }
 
-    // 支持多种常见格式
-    List<DateTimeFormatter> formatters = Arrays.asList(
+    System.out.println("dateTimeStr::::::::::::::"+dateTimeStr);
+
+    String trimmed = dateTimeStr.trim();
+
+    // 定义支持的LocalDate格式
+    List<DateTimeFormatter> dateFormatters = Arrays.asList(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd")
+    );
+
+    // 尝试每种LocalDate格式
+    for (DateTimeFormatter formatter : dateFormatters) {
+      try {
+        LocalDate date = LocalDate.parse(trimmed, formatter);
+        return date.atStartOfDay();
+      } catch (DateTimeParseException e) {
+        // 忽略异常，继续尝试下一个格式
+        log.info(e.getMessage());
+      }
+    }
+
+    // 定义支持的LocalDateTime格式
+    List<DateTimeFormatter> dateTimeFormatters = Arrays.asList(
             DateTimeFormatter.ISO_LOCAL_DATE_TIME,      // "yyyy-MM-dd'T'HH:mm:ss"
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
             DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
             DateTimeFormatter.ofPattern("yyyyMMddHHmmss"),
-            DateTimeFormatter.ISO_OFFSET_DATE_TIME      // 带时区
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME     // 带时区
     );
 
-    for (DateTimeFormatter formatter : formatters) {
+    // 尝试每种LocalDateTime格式
+    for (DateTimeFormatter formatter : dateTimeFormatters) {
       try {
         if (formatter == DateTimeFormatter.ISO_OFFSET_DATE_TIME) {
-          return LocalDateTime.ofInstant(Instant.parse(dateTimeStr), ZoneId.systemDefault());
+          return LocalDateTime.ofInstant(Instant.parse(trimmed), ZoneId.systemDefault());
         }
-        return LocalDateTime.parse(dateTimeStr, formatter);
+        return LocalDateTime.parse(trimmed, formatter);
       } catch (DateTimeParseException e) {
-        throw new DateTimeParseException(e.getMessage(), dateTimeStr, 0);
+        // 忽略异常，继续尝试下一个格式
+        log.info(e.getMessage());
       }
     }
 
     // 尝试解析时间戳
     try {
-      long timestamp = Long.parseLong(dateTimeStr);
+      long timestamp = Long.parseLong(trimmed);
       return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
     } catch (NumberFormatException e) {
-      throw new DateTimeParseException("无法解析日期时间: " + dateTimeStr, dateTimeStr, 0);
+      throw new DateTimeParseException("无法解析日期时间，所有支持的格式都尝试失败: " + trimmed, trimmed, 0);
     }
   }
 

@@ -53,8 +53,6 @@ public class AdminBorrowController {
     try {
       Map<String, Object> borrowMap = ParseUtil.toMap(borrowWithPageParamDTO);
       borrowMap.remove("pageParam");
-      System.out.println(borrowMap);
-
       return ResponseData.success(adminBorrowService.borrowList(borrowMap, pageParam));
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
@@ -71,8 +69,6 @@ public class AdminBorrowController {
     try {
       Map<String, Object> violationMap = ParseUtil.toMap(violationWithPageParamDTO);
       violationMap.remove("pageParam");
-      System.out.println(violationMap);
-
       return ResponseData.success(adminBorrowService.violationList(violationMap, pageParam));
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);

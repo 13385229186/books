@@ -12,7 +12,7 @@ public class UserBorrowWithPageParamDTO {
   private String borrowTime;
   private String dueTime;
   private String returnTime;
-  private String createTime;
+  private String createAt;
   private String status;
 
   // 分页信息
@@ -27,6 +27,6 @@ public class UserBorrowWithPageParamDTO {
    * @return BorrowWithPageParamDTO
    */
   public BorrowWithPageParamDTO toBorrowWithPageParamDTO(){
-    return new BorrowWithPageParamDTO(title, borrowDays, borrowTime, dueTime, returnTime, status, createTime, pageParam);
+    return new BorrowWithPageParamDTO(title, borrowDays, borrowTime, dueTime, returnTime, status, createAt, pageParam);
   }
 }

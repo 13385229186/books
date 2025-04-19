@@ -28,4 +28,11 @@ public class ViolationWithPageParamDTO {
   public ViolationType getViolationType() {
     return ViolationType.fromValue(violationType);
   }
+
+  public ViolationWithPageParamDTO(String title, String violationType, String createdAt, PageParam pageParam){
+    this.title = title;
+    this.violationType = violationType;
+    this.createdAt = createdAt;
+    this.pageParam = pageParam;
+  }
 }

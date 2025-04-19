@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.pyk.bysj.books.app.book.controller.admin.AdminBookController;
 import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
 import com.pyk.bysj.books.app.borrow.service.admin.impl.AdminBorrowServiceImpl;
 import com.pyk.bysj.books.enums.BorrowStatus;
@@ -16,6 +17,7 @@ import com.pyk.bysj.books.model.dto.UserDTO;
 import com.pyk.bysj.books.model.entity.Borrow;
 import com.pyk.bysj.books.model.entity.Login;
 import com.pyk.bysj.books.model.entity.User;
+import com.pyk.bysj.books.utils.ParseUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +29,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,6 +56,8 @@ class BooksApplicationTests extends ServiceImpl<BorrowMapper, Borrow> {
 
   @Autowired
   private AdminBorrowServiceImpl adminBorrowService;
+  @Autowired
+  private AdminBookController adminBookController;
 
   @Test void contextLoads() {
 
@@ -124,26 +132,15 @@ class BooksApplicationTests extends ServiceImpl<BorrowMapper, Borrow> {
 
   @Test
   void myTest(){
-    Collection<Long> borrowIds = new ArrayList<>();
-    borrowIds.add(1L);
-    borrowIds.add(2L);
-    borrowIds.add(4L);
-    borrowIds.add(5L);
-    borrowIds.add(6L);
-    // 批量查询已申请状态
-    List<Borrow> borrows = borrowMapper.selectByIds(borrowIds).stream()
-            .filter(b -> b.getStatus() == BorrowStatus.APPLIED)
-            .toList();
-    borrows.forEach(System.out::println);
-    borrows.forEach(b -> {
-//      adminBorrowService.handleViolationStatus(b, ViolationType.EXPIRED);
-      b.setStatus(BorrowStatus.EXPIRED);
-    });
-    boolean b = updateBatchById(borrows);
-    System.out.println("b = " + b);
+//    LocalDateTime localDateTime = ParseUtil.parseFlexibleDateTime("2025-05-17 16:23:55");
+//    System.out.println("localDateTime = " + localDateTime);
 
-    // 批量更新状态
-//    return ;
+
+//    LocalDate date = LocalDate.parse("2025/05/17", DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+//    System.out.println("date = " + date.atStartOfDay());
+
+//    adminBookController.ttt();
+    System.out.println("JVM 默认编码: " + Charset.defaultCharset());
   }
 
 

@@ -20,8 +20,8 @@ spring:
           min-idle: 5
   servlet:
     multipart:
-      max-file-size: 10MB    # 单个文件最大10MB
-      max-request-size: 20MB # 整个请求最大20MB
+      max-file-size: 100MB    # 单个文件最大100MB
+      max-request-size: 200MB # 整个请求最大200MB
 
 
 mybatis-plus:
@@ -57,3 +57,8 @@ logging:
 app:
 #  borrow-expiration-time: 86400 # 24小时（秒）
   borrow-expiration-time: 5 # 5秒
+  upload:
+    tmp:
+      base-dir: ${user.dir}  # 使用系统属性作为基础路径
+      file-uploads: ${app.upload.tmp.base-dir}/uploads/tmp/fileUploads
+      cover-uploads: ${app.upload.tmp.base-dir}/uploads/tmp/coverUploads

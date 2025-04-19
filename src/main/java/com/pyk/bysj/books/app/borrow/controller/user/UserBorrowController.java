@@ -5,9 +5,7 @@ import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.book.service.user.UserBookService;
 import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
 import com.pyk.bysj.books.app.borrow.service.user.UserBorrowService;
-import com.pyk.bysj.books.model.dto.BorrowWithPageParamDTO;
-import com.pyk.bysj.books.model.dto.PageParam;
-import com.pyk.bysj.books.model.dto.UserBorrowWithPageParamDTO;
+import com.pyk.bysj.books.model.dto.*;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
@@ -63,8 +61,8 @@ public class UserBorrowController {
     return borrowService.cancelBorrowBook(user, ParseUtil.StringIdParseLong(borrowId));
   }
 
-  @PostMapping("/borrowListByUserId")
-  public ResponseData borrowListByUserId(
+  @PostMapping("/borrowListByUser")
+  public ResponseData borrowListByUser(
           @CurrentUser User user,
           @RequestPart("borrowData") @Valid UserBorrowWithPageParamDTO userBorrowWithPageParamDTO
   ){
@@ -77,9 +75,27 @@ public class UserBorrowController {
     try {
       Map<String, Object> borrowMap = ParseUtil.toMap(borrowWithPageParamDTO);
       borrowMap.remove("pageParam");
-      System.out.println(borrowMap);
-
       return ResponseData.success(adminBorrowService.borrowList(borrowMap, pageParam));
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @PostMapping("/violationListByUser")
+  public ResponseData violationListByUser(
+          @CurrentUser User user,
+          @RequestPart("violationData") @Valid UserViolationWithPageParamDTO userViolationWithPageParamDTO
+  ){
+    // 提取筛选条件，加入当前用户id
+    ViolationWithPageParamDTO violationWithPageParamDTO = userViolationWithPageParamDTO.toViolationWithPageParamDTO();
+    violationWithPageParamDTO.setUserId(user.getId());
+    // 提取分页信息
+    PageParam pageParam = violationWithPageParamDTO.getPageParam();
+    // 提取筛选条件
+    try {
+      Map<String, Object> violationMap = ParseUtil.toMap(violationWithPageParamDTO);
+      violationMap.remove("pageParam");
+      return ResponseData.success(adminBorrowService.violationList(violationMap, pageParam));
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     }
