@@ -11,4 +11,5 @@ public class UploadTmpConfig {
   private String baseDir;
   private String fileUploads;
   private String coverUploads;
+  private String avatarUploads;
 }

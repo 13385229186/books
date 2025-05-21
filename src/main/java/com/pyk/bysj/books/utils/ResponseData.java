@@ -10,29 +10,30 @@ import lombok.NoArgsConstructor;
 public class ResponseData {
   private int code;
   private String msg;
+  private String status;
   private Object data;
 
   public static ResponseData success() {
-    return new ResponseData(200, "success", null);
+    return new ResponseData(200, "success", "success", null);
   }
 
   public static ResponseData success(Object data){
-    return new ResponseData(200, "success", data);
+    return new ResponseData(200, "success", "success", data);
   }
   public static ResponseData fail() {
-    return new ResponseData(500, "fail", null);
+    return new ResponseData(500, "fail", "fail", null);
   }
 
   public static ResponseData fail(String msg){
-    return new ResponseData(500, msg, null);
+    return new ResponseData(500, msg, "fail", null);
   }
 
   public static ResponseData fail(int code, String msg){
-    return new ResponseData(code, msg, null);
+    return new ResponseData(code, msg, "fail", null);
   }
 
   public static ResponseData fail(int code, String msg, Object data){
-    return new ResponseData(code, msg, data);
+    return new ResponseData(code, msg, "fail", data);
   }
 
 }

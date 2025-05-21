@@ -13,7 +13,7 @@ public class AuthExceptionUtil {
     } else if (e instanceof CredentialsExpiredException) {
       return ResponseData.fail(1105,"用户名或者密码输入错误!");
     }else if (e instanceof InsufficientAuthenticationException) {
-      return ResponseData.fail(403,"权限不足请重新登录!");
+      return ResponseData.fail(403,"认证失败，请重新登录!");
     } else if (e instanceof AccountExpiredException) {
       return ResponseData.fail(1101, "账户过期，请联系管理员!");
     } else if (e instanceof DisabledException) {

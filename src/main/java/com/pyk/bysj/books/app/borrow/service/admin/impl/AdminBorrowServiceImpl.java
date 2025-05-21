@@ -220,7 +220,8 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
             .select(User::getPhone)
             .innerJoin(User.class, User::getId, Borrow::getUserId)
             .select(Book::getTitle)
-            .innerJoin(Book.class, Book::getId, Borrow::getBookId);
+            .innerJoin(Book.class, Book::getId, Borrow::getBookId)
+            .orderByDesc(Borrow::getCreatedAt);
 
     borrowMap.forEach((key, value) -> {
       if (StringUtils.isNotBlank(key) && value != null) {
@@ -240,11 +241,15 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
             wrapper.eq(Borrow::getBorrowDays, Integer.parseInt(value.toString()));
             break;
           case "status":
-            BorrowStatus borrowStatus = BorrowStatus.fromValue(value.toString());
+            BorrowStatus borrowStatus = BorrowStatus.valueOf(value.toString());
             wrapper.eq(Borrow::getStatus, borrowStatus);
             // 若筛选已申请或已过期状态，需刷新所有已申请但实际过期的借阅
             if(borrowStatus == BorrowStatus.APPLIED || borrowStatus == BorrowStatus.EXPIRED){
               batchProcessExpire();
+            }
+            // 若筛选借阅中或已逾期状态，需刷新所有借阅中但实际逾期的借阅
+            if(borrowStatus == BorrowStatus.BORROWED || borrowStatus == BorrowStatus.OVERDUE){
+              batchProcessOVERDUE();
             }
             break;
           case "name":
@@ -312,6 +317,16 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
       });
     }
 
+    // 实时同步已逾期借阅
+    List<Long> overdueIds = batchProcessOVERDUE(records);
+    if (!overdueIds.isEmpty()) {
+      records.forEach(record -> {
+        if(overdueIds.contains(record.getId())){
+          record.setStatus(BorrowStatus.OVERDUE);
+        }
+      });
+    }
+
     return new ListQueryResult<>(
             records,
             true,
@@ -328,7 +343,7 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
     List<Borrow> borrows = borrowMapper.selectList(
             new LambdaQueryWrapper<Borrow>()
                     .eq(Borrow::getStatus, BorrowStatus.APPLIED)
-                    .lt(borrow -> borrow.getCreatedAt().plusSeconds(borrowExpirationTime), LocalDateTime.now())
+                    .lt(Borrow::getCreatedAt, LocalDateTime.now().minusSeconds(borrowExpirationTime))
     );
 
     if (borrows.isEmpty()) return ;
@@ -371,6 +386,68 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
     return borrows.stream().map(Borrow::getId).collect(Collectors.toList());
   }
 
+  /**
+   * 检查是否存在未处理的逾期借阅
+   */
+  private void batchProcessOVERDUE() {
+    // 查询所有借阅中且实际逾期的借阅
+    List<Borrow> borrows = borrowMapper.selectList(
+            new LambdaQueryWrapper<Borrow>()
+                    .eq(Borrow::getStatus, BorrowStatus.BORROWED)
+                    .lt(Borrow::getDueTime, LocalDateTime.now())
+    );
+    System.out.println("***222");
+    System.out.println("borrows = " + borrows);
+
+    if (borrows.isEmpty()) return ;
+
+    // 处理逾期违规业务逻辑
+    borrows.forEach(borrow -> {
+      handleViolationStatus(borrow, ViolationType.OVERDUE);
+      borrow.setStatus(BorrowStatus.OVERDUE);
+    });
+
+    // 批量更新状态
+    if(!updateBatchById(borrows)){
+      throw new SqlFailedException("状态更新失败");
+    }
+    log.info("所有逾期借阅已刷新");
+  }
+
+  /**
+   * 检查指定记录中是否存在未处理的已逾期借阅
+   * @param borrowDTOs 指定记录范围
+   */
+  private List<Long> batchProcessOVERDUE(List<BorrowDTO> borrowDTOs) {
+    List<Borrow> borrows = borrowDTOs.stream()
+            .filter(record -> {
+              if(record.getStatus() != BorrowStatus.BORROWED){
+                return false;
+              }
+              System.out.println("***111");
+              System.out.println(LocalDateTime.now());
+              System.out.println(record.getDueTime());
+              System.out.println(LocalDateTime.now().isAfter(record.getDueTime()));
+              return record.getStatus() == BorrowStatus.BORROWED && LocalDateTime.now().isAfter(record.getDueTime());
+            })
+            .map(BorrowDTO::toBorrow)
+            .toList();
+
+    if (borrows.isEmpty()) return Collections.emptyList();
+
+    // 处理逾期违规业务逻辑
+    borrows.forEach(borrow -> {
+      handleViolationStatus(borrow, ViolationType.OVERDUE);
+      borrow.setStatus(BorrowStatus.OVERDUE);
+    });
+
+    // 批量更新状态
+    if(!updateBatchById(borrows)){
+      throw new SqlFailedException("状态更新失败");
+    }
+    return borrows.stream().map(Borrow::getId).collect(Collectors.toList());
+  }
+
   @Override
   public ListQueryResult<ViolationDTO> violationList(Map<String, Object> violationMap, PageParam pageParam) {
     // 开启分页查询
@@ -382,7 +459,8 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
             .select(User::getPhone)
             .innerJoin(User.class, User::getId, ViolationRecord::getUserId)
             .select(Book::getTitle)
-            .innerJoin(Book.class, Book::getId, ViolationRecord::getBookId);
+            .innerJoin(Book.class, Book::getId, ViolationRecord::getBookId)
+            .orderByDesc(Borrow::getCreatedAt);
 
     violationMap.forEach((key, value) -> {
       if (StringUtils.isNotBlank(key) && value != null) {
@@ -402,7 +480,7 @@ public class AdminBorrowServiceImpl extends ServiceImpl<BorrowMapper, Borrow> im
             wrapper.eq(ViolationRecord::getBorrowId, ParseUtil.StringIdParseLong(value.toString()));
             break;
           case "violationType":
-            wrapper.eq(ViolationRecord::getViolationType, ViolationType.fromValue(value.toString()));
+            wrapper.eq(ViolationRecord::getViolationType, ViolationType.valueOf(value.toString()));
             break;
           case "name":
             wrapper.eq(User::getName, value.toString());

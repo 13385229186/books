@@ -34,7 +34,12 @@ public interface AdminBookService {
   ResponseData setBookNumber(Integer bookId, Integer number);
 
 
-
+  /**
+   * 添加书籍类别
+   * @param categoryName 类别名称
+   * @return ResponseData
+   */
+  ResponseData addCategory(String categoryName);
 
 
 

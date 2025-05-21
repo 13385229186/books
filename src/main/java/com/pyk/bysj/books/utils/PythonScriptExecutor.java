@@ -38,6 +38,12 @@ public class PythonScriptExecutor {
       // 3. 执行进程
       ProcessResult result = executeProcess(command, timeout);
 
+      System.out.println("******* 标准输出 *******");
+      System.out.println(result.getStandardOutput());
+      System.out.println("******* 错误输出 *******");
+      System.out.println(result.getErrorOutput());
+      System.out.println("********* 结束 *********");
+
       // 4. 检查执行结果
       if (result.getExitCode() != 0) {
         String errorMsg = !result.getErrorOutput().isEmpty() ?
@@ -84,8 +90,9 @@ public class PythonScriptExecutor {
     // 添加命名参数
     argsMap.forEach((key, value) -> {
       command.add("--" + key);
-      command.add(normalizePath(value));
+      command.add(escapeJsonQuotes(value));
     });
+    System.out.println("command = " + command);
 
     return command;
   }
@@ -95,6 +102,13 @@ public class PythonScriptExecutor {
    */
   private static String normalizePath(String path) {
     return path != null ? path.replace("\\", "/") : "";
+  }
+
+  /**
+   * 转义JSON字符串中的双引号
+   */
+  private static String escapeJsonQuotes(String jsonStr) {
+    return normalizePath(jsonStr).replace("\"", "\\\"");
   }
 
   /**

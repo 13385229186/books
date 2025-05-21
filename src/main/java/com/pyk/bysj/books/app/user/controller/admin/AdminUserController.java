@@ -4,10 +4,7 @@ import com.pyk.bysj.books.app.user.service.admin.AdminUserService;
 import com.pyk.bysj.books.app.user.service.user.UserService;
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.enums.UserStatus;
-import com.pyk.bysj.books.model.dto.LoginDTO;
-import com.pyk.bysj.books.model.dto.PageParam;
-import com.pyk.bysj.books.model.dto.UserDTO;
-import com.pyk.bysj.books.model.dto.UserWithPageParamDTO;
+import com.pyk.bysj.books.model.dto.*;
 import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.ResponseData;
@@ -15,6 +12,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,17 +21,19 @@ import java.util.Map;
 
 @Validated
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 public class AdminUserController {
   private final AdminUserService adminUserService;
+  private final PasswordEncoder passwordEncoder;
 
-  public AdminUserController(AdminUserService adminUserService) {
+  public AdminUserController(AdminUserService adminUserService, PasswordEncoder passwordEncoder) {
     this.adminUserService = adminUserService;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @PostMapping("/userList")
   public ResponseData userList(
-          @RequestPart("userData") @Valid UserWithPageParamDTO userWithPageParamDTO
+          @RequestBody @Valid UserWithPageParamDTO userWithPageParamDTO
           ){
     // 提取分页信息
     PageParam pageParam = userWithPageParamDTO.getPageParam();
@@ -71,12 +72,19 @@ public class AdminUserController {
           String status
   ){
     Integer userId = ParseUtil.StringIdParseInteger(id);
-    return adminUserService.changeStatus(userId, UserStatus.fromValue(status));
+    return adminUserService.changeStatus(userId, UserStatus.valueOf(status));
   }
 
-//  public ResponseData addUser(
-//          @RequestPart("loginData") @Valid LoginDTO loginDTO
-//  )
+  @PostMapping("/addUser")
+  public ResponseData addUser(
+          @RequestBody @Valid AddUserDTO addUserDTO
+  ){
+    if(!addUserDTO.getPassword().isEmpty()){
+      String encodedPassword = passwordEncoder.encode(addUserDTO.getPassword());
+      addUserDTO.setPassword(encodedPassword);
+    }
+    return adminUserService.addUser(addUserDTO);
+  }
 
   @PostMapping("/getUserById")
   public ResponseData getUserById(
@@ -87,10 +95,5 @@ public class AdminUserController {
     Integer userId = ParseUtil.StringIdParseInteger(id);
     return ResponseData.success(adminUserService.getUserById(userId));
   }
-
-
-
-
-
 
 }

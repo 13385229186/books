@@ -1,6 +1,7 @@
 package com.pyk.bysj.books.model.dto;
 
 import com.pyk.bysj.books.enums.ViolationType;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 public class ViolationWithPageParamDTO {
   // 用户信息
   private String name;
+  @Pattern(regexp = "^(|1[3-9]\\d{9})$", message = "手机号格式不正确")
   private String phone;
 
   // 书籍信息

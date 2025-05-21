@@ -72,15 +72,17 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
     httpSecurity.csrf(AbstractHttpConfigurer::disable); // 关闭csrf
     // 配置路径相关
-//    httpSecurity.authorizeHttpRequests(it->
-//            it.requestMatchers("/user/login", "/user/register").permitAll()  //设置登录路径所有人都可以访问
-//                    .anyRequest().authenticated()  //其他路径都要进行拦截
-//    );
+    httpSecurity.authorizeHttpRequests(it->
+            it.requestMatchers("/api/user/login", "/api/user/register", "/api/captcha", "/api/verify").permitAll()  //设置登录路径所有人都可以访问
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN") // 管理员接口
+                    .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "USER") // 用户接口
+                    .anyRequest().authenticated()  //其他路径都要进行拦截
+    );
     // 异常处理
-//    httpSecurity.exceptionHandling(exceptions -> exceptions
-////            .authenticationEntryPoint(authenticationEntryPoint) // 认证失败处理
-////            .accessDeniedHandler(accessDeniedHandler) // 权限不足处理
-//    );
+    httpSecurity.exceptionHandling(exceptions -> exceptions
+            .authenticationEntryPoint(authenticationEntryPoint) // 认证失败处理
+            .accessDeniedHandler(accessDeniedHandler) // 权限不足处理
+    );
 
     // 添加JWT过滤器
     httpSecurity.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);

@@ -9,15 +9,15 @@ import java.util.Set;
 @Getter
 public enum ViolationType {
   /**
-   * 逾期未还
+   * 逾期未还，扣20分
    */
   OVERDUE("逾期未还"),
   /**
-   * 书籍丢失
+   * 书籍丢失，扣40分
    */
   LOST("书籍丢失"),
   /**
-   * 申请过期
+   * 申请过期，扣10分
    */
   EXPIRED("申请过期");
 

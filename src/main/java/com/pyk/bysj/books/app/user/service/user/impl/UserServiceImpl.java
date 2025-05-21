@@ -24,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -89,7 +90,7 @@ public class UserServiceImpl implements UserService {
     // 检查username是否重复
     List<Login> usernameList = loginMapper.selectByMap(Map.of("username", username));
     if (!usernameList.isEmpty()) {
-      return ResponseData.fail("用户名已存在！");
+      return ResponseData.fail(400, "用户名已存在！");
     }
 
     // 创建用户对象
@@ -100,7 +101,7 @@ public class UserServiceImpl implements UserService {
       // 创建用户信用分
       UserCredit userCredit = new UserCredit(user.getId());
       if(loginMapper.insert(login) > 0 && userCreditMapper.insert(userCredit) > 0){
-        return ResponseData.success();
+        return ResponseData.success(user);
       }
     }
     return ResponseData.fail("用户创建失败，请重试！");
@@ -174,8 +175,13 @@ public class UserServiceImpl implements UserService {
     }
 
     // password
-    if (StringUtils.isNotBlank(dto.getPassword())) {
-      login.setPassword(dto.getPassword());
+    if (StringUtils.isNotBlank(dto.getPassword()) && StringUtils.isNotBlank(dto.getOldPassword())) {
+      BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+      if(!encoder.matches(dto.getOldPassword(), login.getPassword())){
+        throw new IllegalArgumentException("原密码错误！");
+      }
+      String encodedPassword = encoder.encode(dto.getPassword());
+      login.setPassword(encodedPassword);
       isToUpdated = true;
     }
 
@@ -187,7 +193,8 @@ public class UserServiceImpl implements UserService {
    * @param phone 电话号码
    * @param excludeUserId 排除user
    */
-  private void validatePhoneUniqueness(String phone, Integer excludeUserId) {
+  @Override
+  public void validatePhoneUniqueness(String phone, Integer excludeUserId) {
     long count = userMapper.selectCount(
             Wrappers.<User>lambdaQuery()
                     .eq(User::getPhone, phone)

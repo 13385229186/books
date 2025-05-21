@@ -1,0 +1,150 @@
+@startuml
+' 设置全局参数
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 30
+skinparam roundCorner 10
+left to right direction
+hide circle
+
+' 实体定义
+entity user {
+  # id : INT <<PK>>
+  avatar : VARCHAR(255)
+  name : VARCHAR(50)
+  phone : VARCHAR(20) <<UQ>>
+  role : ENUM('ADMIN','USER')
+  status : ENUM('ACTIVE', 'DISABLED', 'LOCKED', 'DELETED')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity login {
+  # id : INT <<PK>>
+  * user_id : INT <<FK>>
+  username : VARCHAR(50) <<UQ>>
+  password : CHAR(60)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity category {
+  # id : INT <<PK>>
+  name : VARCHAR(50)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity book {
+  # id : INT <<PK>>
+  isbn : CHAR(32) <<UQ>>
+  cover : VARCHAR(255)
+  title : VARCHAR(100)
+  author : VARCHAR(100)
+  press : VARCHAR(100)
+  * category_id : INT <<FK>>
+  intro : VARCHAR(255)
+  ebook : VARCHAR(255)
+  status : ENUM('AVAILABLE','BORROWED','MAINTENANCE')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity borrow {
+  # id : BIGINT <<PK>>
+  * user_id : INT <<FK>>
+  * book_id : INT <<FK>>
+  borrow_days : TINYINT
+  borrow_time : DATETIME
+  due_time : DATETIME
+  return_time : DATETIME
+  status : ENUM('APPLIED','CANCELLED','EXPIRED','BORROWED','OVERDUE','RETURNED','LOST')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+' 其他实体定义（保持相同模式）
+entity user_credit {
+  # id : BIGINT <<PK>>
+  * user_id : INT <<FK>>
+  credit_score : TINYINT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity violation_record {
+  # id : BIGINT <<PK>>
+  * user_id : INT <<FK>>
+  * book_id : INT <<FK>>
+  * borrow_id : BIGINT <<FK>>
+  violation_type : ENUM('EXPIRED', 'OVERDUE', 'LOST')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity user_behavior {
+  # id : BIGINT <<PK>>
+  * user_id : INT <<FK>>
+  * book_id : INT <<FK>>
+  behavior_type : ENUM('VIEW', 'DOWNLOAD', 'BORROW', 'READ_ONLINE')
+  weight : FLOAT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity user_recommendation {
+  # id : BIGINT <<PK>>
+  * user_id : INT <<FK>>
+  * book_id : INT <<FK>>
+  score : DECIMAL(5,2)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity hot_book {
+  # id : INT <<PK>>
+  * book_id : INT <<FK>>
+  heat_score : FLOAT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity book_number {
+  # id : INT <<PK>>
+  * book_id : INT <<FK>>
+  number : INT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity book_similarity {
+  # id : BIGINT <<PK>>
+  * book_id : INT <<FK>>
+  * similar_book_id : INT <<FK>>
+  score : FLOAT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+' 关系定义
+user ||--o{ login : "1:N"
+category ||--o{ book : "1:N"
+
+user ||--o{ borrow : "1:N"
+book ||--o{ borrow : "1:N"
+
+user ||--o{ user_credit : "1:1"
+user ||--o{ violation_record : "1:N"
+borrow ||--o{ violation_record : "1:N"
+
+user ||--o{ user_behavior : "1:N"
+book ||--o{ user_behavior : "1:N"
+
+user ||--o{ user_recommendation : "1:N"
+book ||--o{ user_recommendation : "1:N"
+
+book ||--o{ hot_book : "1:1"
+book ||--o{ book_number : "1:1"
+book ||--o{ book_similarity : "1:N (similar_book)"
+
+@enduml

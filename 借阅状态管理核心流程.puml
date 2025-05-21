@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FFF
+title 借阅状态管理核心流程
+left to right direction
+
+state "初始请求" as start
+state "状态校验" as validation
+state "违规处理" as violation
+state "正常处理" as normal
+state "更新状态" as update
+state "结束" as end
+
+start -> validation : 输入(id, status)
+
+validation --> violation : 是违规状态?\n(EXPIRED/OVERDUE/LOST)
+validation --> normal : 是正常状态?\n(CANCELLED/BORROWED/RETURNED)
+
+violation -> update : 执行信用分扣减\n生成违规记录
+normal -> update : 执行库存/时间操作
+
+update -> end : 返回操作结果
+
+' 状态转换示意
+note bottom of validation
+  关键校验规则：
+  1. 禁止设为APPLIED
+  2. EXPIRED←APPLIED
+  3. OVERDUE←BORROWED
+  4. LOST←BORROWED/OVERDUE
+  5. RETURNED←BORROWED/OVERDUE
+end note
+@enduml

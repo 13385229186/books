@@ -1,0 +1,42 @@
+@startuml
+actor 用户
+participant "用户界面" as UI
+participant "控制层" as Controller
+participant "服务层" as Service
+participant "持久层" as Mapper
+database "MySQL"
+
+用户 -> UI : 提交借阅申请(图书ID)
+UI -> Controller : POST /borrow
+Controller -> Service : validateBorrow(userId, bookId)
+
+Service -> Mapper : 获取用户信用分
+Mapper -> MySQL : 查询信用数据
+MySQL --> Mapper : UserCredit
+Mapper --> Service : creditScore
+
+alt 信用分 < 50
+    Service --> Controller : 抛出"信用分过低"
+else if 50 ≤ creditScore < 80
+    Service -> Mapper : 统计当前借阅数
+    Mapper -> MySQL : 查询借阅记录
+    MySQL --> Mapper : count
+    alt count ≥ 1
+        Service --> Controller : 抛出"限借1本"
+    end
+else if creditScore ≥ 80
+    Service -> Mapper : 统计当前借阅数
+    Mapper -> MySQL : 查询借阅记录
+    MySQL --> Mapper : count
+    alt count ≥ 3
+        Service --> Controller : 抛出"限借3本"
+    end
+end
+
+Service -> Mapper : 检查重复借阅
+Mapper -> MySQL : 查询借阅关系
+MySQL --> Mapper : exists
+alt exists
+    Service --> Controller : 抛出"已借阅该书"
+end
+@enduml

@@ -1,11 +1,17 @@
 package com.pyk.bysj.books.filter;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.pyk.bysj.books.enums.UserStatus;
+import com.pyk.bysj.books.exception.security.JwtAuthenticationException;
+import com.pyk.bysj.books.exception.user.UserStatusException;
 import com.pyk.bysj.books.mapper.LoginMapper;
 import com.pyk.bysj.books.mapper.UserMapper;
 import com.pyk.bysj.books.model.LoginUserDetails;
 import com.pyk.bysj.books.model.entity.Login;
 import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.JwtTokenUtil;
+import com.pyk.bysj.books.utils.ResponseData;
 import com.pyk.bysj.books.utils.TokenBlacklist;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.IOException;
@@ -57,10 +63,9 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     } catch (Exception e) {
       System.out.println("认证失败！！！");
       tokenBlacklist.addToBlacklist(token);
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "认证失败，请重新登录");
-      return; // 终止后续处理
+      // 终止后续处理
     }
-
+    System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaa");
     //继续执行其他过滤器的逻辑
     chain.doFilter(request,response);
   }
@@ -74,20 +79,28 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     //判断token是否过期
     boolean expiration = jwtTokenUtil.isTokenExpired(token);
     if (expiration || tokenBlacklist.isBlacklisted(token)){
+      System.out.println("*********token已过期，请重新登录*******");
       throw new JwtException("token已过期，请重新登录");
     }else{
       String username = jwtTokenUtil.getUserNameFromToken(token);
 
       System.out.println("username = " + username);
       
-      Map<String, Object> map = new HashMap<>();
-      map.put("username",username);
-      List<Login> logins = loginMapper.selectByMap(map);
-      if (logins == null || logins.isEmpty()) {
+      Login login = loginMapper.selectOne(
+              new LambdaQueryWrapper<Login>().eq(Login::getUsername, username)
+      );
+      if (login == null) {
         throw new UsernameNotFoundException("用户不存在");
       }
-      Login login = logins.get(0);
       User user = userMapper.selectById(login.getUserId());
+      System.out.println("=========================");
+      System.out.println(login);
+      System.out.println(user.getStatus());
+      System.out.println("=========================");
+      if(user.getStatus() != UserStatus.ACTIVE){
+        tokenBlacklist.addToBlacklist(token);
+        throw new UserStatusException("用户状态异常，请联系管理员");
+      }
       LoginUserDetails loginUserDetails = new LoginUserDetails(user, login, "ROLE_" + user.getRole());
 
       System.out.println("loginUserDetails = " + loginUserDetails);

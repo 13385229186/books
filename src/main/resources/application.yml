@@ -11,7 +11,7 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: 123456
+#      password: 123456
       database: 1
       lettuce:
         pool:
@@ -22,7 +22,6 @@ spring:
     multipart:
       max-file-size: 100MB    # 单个文件最大100MB
       max-request-size: 200MB # 整个请求最大200MB
-
 
 mybatis-plus:
   configuration:
@@ -55,10 +54,14 @@ logging:
       file-name-pattern: logs/app-%d{yyyy-MM-dd}.%i.log  # 按日期滚动
 
 app:
-#  borrow-expiration-time: 86400 # 24小时（秒）
-  borrow-expiration-time: 5 # 5秒
+  borrow-expiration-time: 86400 # 24小时（秒）
+#  borrow-expiration-time: 5 # 5秒
   upload:
     tmp:
       base-dir: ${user.dir}  # 使用系统属性作为基础路径
       file-uploads: ${app.upload.tmp.base-dir}/uploads/tmp/fileUploads
       cover-uploads: ${app.upload.tmp.base-dir}/uploads/tmp/coverUploads
+      avatar-uploads: ${app.upload.tmp.base-dir}/uploads/tmp/avatarUploads
+  recommendation:
+    expire-seconds: 86400  # 用户推荐时效 24小时（秒）
+#    expire-seconds: 5  # 5秒

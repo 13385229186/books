@@ -1,5 +1,6 @@
 package com.pyk.bysj.books.app.book.service.admin.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
 import com.pyk.bysj.books.enums.BookStatus;
@@ -8,9 +9,12 @@ import com.pyk.bysj.books.exception.general.OperationFailedException;
 import com.pyk.bysj.books.exception.general.SqlFailedException;
 import com.pyk.bysj.books.mapper.BookMapper;
 import com.pyk.bysj.books.mapper.BookNumberMapper;
+import com.pyk.bysj.books.mapper.CategoryMapper;
 import com.pyk.bysj.books.model.entity.Book;
 import com.pyk.bysj.books.model.entity.BookNumber;
+import com.pyk.bysj.books.model.entity.Category;
 import com.pyk.bysj.books.utils.ResponseData;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +24,12 @@ import java.util.Map;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class AdminBookServiceImpl implements AdminBookService {
-  @Autowired
-  private BookMapper bookMapper;
-  @Autowired
-  private BookNumberMapper bookNumberMapper;
+  private final BookMapper bookMapper;
+  private final BookNumberMapper bookNumberMapper;
+  private final CategoryMapper categoryMapper;
 
   @Override
   public ResponseData addBook(Book book, Integer bookNumber) {
@@ -106,5 +110,20 @@ public class AdminBookServiceImpl implements AdminBookService {
     }else{
       throw new SqlFailedException("设置失败");
     }
+  }
+
+  @Override
+  public ResponseData addCategory(String categoryName) {
+    List<Category> categories = categoryMapper.selectList(
+            new LambdaQueryWrapper<Category>().eq(Category::getName, categoryName)
+    );
+    if(!categories.isEmpty()){
+      return ResponseData.fail("该书籍类别已存在！");
+    }
+    int insert = categoryMapper.insert(new Category(categoryName));
+    if (insert <= 0) {
+      throw new SqlFailedException("书籍类别添加失败！");
+    }
+    return ResponseData.success();
   }
 }

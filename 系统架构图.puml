@@ -1,0 +1,33 @@
+@startuml
+
+' 定义参与者
+actor Client as C
+rectangle "腾讯云轻量应用服务器" as Server {
+    component "控制器（Controller）" as Controller
+    component "服务层（Service）" as Service
+    component "数据访问层（Repository）" as Repository
+}
+database "MySQL 数据库" as DB
+rectangle "腾讯云 COS 存储服务" as COS
+
+' 客户端与服务器控制器交互
+C --> Controller : 发送请求 (HTTP)
+Controller --> C : 返回响应 (HTTP)
+
+' 控制器与服务层交互
+Controller --> Service : 调用业务逻辑
+Service --> Controller : 返回处理结果
+
+' 服务层与数据访问层交互
+Service --> Repository : 请求数据操作
+Repository --> Service : 返回数据
+
+' 数据访问层与数据库交互
+Repository --> DB : 执行 SQL 操作
+DB --> Repository : 返回查询结果
+
+' 服务层与腾讯云 COS 交互
+Service --> COS : 上传/下载文件 (API)
+COS --> Service : 返回操作结果
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+actor 管理员
+participant "用户界面" as UI
+participant "控制层" as Controller
+participant "服务层" as Service
+participant "持久层" as Mapper
+database "MySQL"
+
+管理员 -> UI : 查看待处理申请
+UI -> Controller : POST /api/admin/borrowList
+Controller -> Service : fetchPendingBorrows()
+Service -> Mapper : 查询申请列表
+Mapper -> MySQL : 检索借阅记录
+MySQL --> Mapper : List<Borrow>
+Mapper --> Service : borrowList
+Service --> Controller : List<BorrowDTO>
+
+管理员 -> UI : 确认借出
+UI -> Controller : POST /api/admin/setBorrowStatus
+Controller -> Service : setBorrowStatus(borrowId,BORROWED)
+Service -> Mapper : 更新借阅状态
+Mapper -> MySQL : 修改为BORROWED
+MySQL --> Mapper : result
+alt result = 0
+    Service --> Controller : 抛出"状态冲突"
+else
+    Service --> Controller : 返回成功
+end
+@enduml

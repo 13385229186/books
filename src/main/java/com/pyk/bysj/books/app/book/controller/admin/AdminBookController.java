@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.JSON;
 import com.pyk.bysj.books.app.book.service.admin.AdminBookService;
 import com.pyk.bysj.books.config.UploadTmpConfig;
 import com.pyk.bysj.books.exception.book.BookUploadException;
+import com.pyk.bysj.books.mapper.BookMapper;
+import com.pyk.bysj.books.mapper.CategoryMapper;
 import com.pyk.bysj.books.model.dto.BookDTO;
 import com.pyk.bysj.books.model.dto.BorrowStatusDTO;
 import com.pyk.bysj.books.model.dto.EbookDTO;
@@ -39,15 +41,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 public class AdminBookController {
   private final UploadTmpConfig uploadTmpConfig;
   private final AdminBookService bookService;
+  private final BookMapper bookMapper;
 
   @Autowired
-  public AdminBookController(UploadTmpConfig uploadTmpConfig, AdminBookService bookService) {
+  public AdminBookController(UploadTmpConfig uploadTmpConfig, AdminBookService bookService, BookMapper bookMapper) {
     this.uploadTmpConfig = uploadTmpConfig;
     this.bookService = bookService;
+    this.bookMapper = bookMapper;
   }
 
   @PostMapping("/bookUpload")
@@ -57,7 +61,12 @@ public class AdminBookController {
           @RequestPart(value = "cover", required = false) MultipartFile cover
   ){
     Book book = bookDTO.toEntity();
+    handleUpload(book, file, cover);
 
+    return bookService.addBook(book, bookDTO.getBookNumber());
+  }
+
+  private void handleUpload(Book book, MultipartFile file, MultipartFile cover){
     // 空文件检查
     boolean hasFile = file != null && !file.isEmpty();
     boolean hasCover = cover != null && !cover.isEmpty();
@@ -67,7 +76,7 @@ public class AdminBookController {
     if(hasFile || hasCover){
       // python脚本参数
       Map<String, String> args = new HashMap<>();
-      args.put("bookName", bookDTO.getTitle());
+      args.put("bookName", book.getTitle());
       args.put("overwrite", "true");
 
       Path contentTempPath = null;
@@ -127,8 +136,6 @@ public class AdminBookController {
         }
       }
     }
-
-    return bookService.addBook(book, bookDTO.getBookNumber());
   }
 
   @PostMapping("/updateBook")
@@ -136,13 +143,30 @@ public class AdminBookController {
           @RequestParam("bookId")
           @NotBlank(message = "id不能为空")
           String id,
-          @RequestPart("bookData")
+          @RequestPart(value = "bookData", required = false)
           @Valid
-          BookDTO bookDTO
+          BookDTO bookDTO,
+          @RequestPart(value = "file", required = false)
+          MultipartFile file,
+          @RequestPart(value = "cover", required = false)
+          MultipartFile cover
   ){
     Integer bookId = ParseUtil.StringIdParseInteger(id);
-    Book book = bookDTO.toEntity();
-    book.setId(bookId);
+
+    Book book;
+    if(bookDTO == null){
+      book = bookMapper.selectById(id);
+    }else{
+      if(bookDTO.getBookNumber()!=null){
+        ResponseData responseData = bookService.setBookNumber(bookId, bookDTO.getBookNumber());
+        if(responseData.getCode() != 200){
+          return responseData;
+        }
+      }
+      book = bookDTO.toEntity();
+      book.setId(bookId);
+    }
+    handleUpload(book, file, cover);
     return bookService.updateBook(book);
   }
 
@@ -168,6 +192,15 @@ public class AdminBookController {
     Integer bookId = ParseUtil.StringIdParseInteger(id);
     Integer bookNumber = ParseUtil.StringIdParseInteger(bk, "书本库存");
     return bookService.setBookNumber(bookId, bookNumber);
+  }
+
+  @PostMapping("/addCategory")
+  public ResponseData addCategory(
+          @RequestParam("CategoryName")
+          @NotBlank(message = "类别名称不能为空")
+          String categoryName
+  ){
+    return bookService.addCategory(categoryName);
   }
 
 

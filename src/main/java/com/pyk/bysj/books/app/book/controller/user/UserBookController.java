@@ -18,7 +18,7 @@ import java.util.Map;
 
 @Validated
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserBookController {
   private final UserBookService bookService;
 
@@ -29,8 +29,9 @@ public class UserBookController {
 
   @PostMapping("/bookList")
   public ResponseData bookList(
-          @RequestPart("bookData") @Valid BookDTO bookDTO
+          @RequestBody @Valid BookDTO bookDTO
   ){
+    System.out.println("bookDTO" + bookDTO);
     // 提取分页信息
     PageParam pageParam = bookDTO.getPageParam();
     // 提取筛选条件

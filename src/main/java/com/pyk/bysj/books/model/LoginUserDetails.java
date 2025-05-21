@@ -1,5 +1,6 @@
 package com.pyk.bysj.books.model;
 
+import com.pyk.bysj.books.enums.UserStatus;
 import com.pyk.bysj.books.model.entity.Login;
 import com.pyk.bysj.books.model.entity.User;
 import lombok.AllArgsConstructor;

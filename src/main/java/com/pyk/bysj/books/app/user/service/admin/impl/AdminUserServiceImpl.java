@@ -9,12 +9,14 @@ import com.github.yulichang.query.MPJLambdaQueryWrapper;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.pyk.bysj.books.app.user.service.admin.AdminUserService;
+import com.pyk.bysj.books.app.user.service.user.UserService;
 import com.pyk.bysj.books.enums.BookStatus;
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.enums.UserStatus;
 import com.pyk.bysj.books.exception.general.NotExistException;
 import com.pyk.bysj.books.exception.general.SqlFailedException;
 import com.pyk.bysj.books.mapper.UserMapper;
+import com.pyk.bysj.books.model.dto.AddUserDTO;
 import com.pyk.bysj.books.model.dto.ListQueryResult;
 import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.dto.UserDTO;
@@ -35,9 +37,11 @@ import java.util.Map;
 @Slf4j
 public class AdminUserServiceImpl implements AdminUserService {
   private final UserMapper userMapper;
+  private final UserService userService;
 
-  public AdminUserServiceImpl(UserMapper userMapper) {
+  public AdminUserServiceImpl(UserMapper userMapper, UserService userService) {
     this.userMapper = userMapper;
+    this.userService = userService;
   }
 
   @Override
@@ -46,7 +50,11 @@ public class AdminUserServiceImpl implements AdminUserService {
     Page<UserDTO> page = new Page<>(pageParam.getCurrent(), pageParam.getPageSize());
     // 筛选条件Wrapper
     MPJLambdaWrapper<User> wrapper = JoinWrappers.lambda(User.class);
-    wrapper.selectAll();
+    wrapper.selectAll()
+            .select(UserCredit::getCreditScore)
+            .innerJoin(UserCredit.class, UserCredit::getUserId, User::getId)
+            .select(Login::getUsername)
+            .innerJoin(Login.class, Login::getUserId, User::getId);
     userMap.forEach((key, value) -> {
       if (StringUtils.isNotBlank(key) && value != null) {
         // 根据参数名动态添加条件
@@ -61,8 +69,11 @@ public class AdminUserServiceImpl implements AdminUserService {
           case "phone":
             wrapper.eq(User::getPhone, value.toString());
             break;
+          case "status":
+            wrapper.eq(User::getStatus, UserStatus.valueOf(value.toString()));
+            break;
           case "role":
-            wrapper.eq(User::getRole, Role.fromValue(value.toString()));
+            wrapper.eq(User::getRole, Role.valueOf(value.toString()));
             break;
           case "creditScore":
             wrapper.select(UserCredit::getCreditScore)
@@ -148,7 +159,18 @@ public class AdminUserServiceImpl implements AdminUserService {
   }
 
   @Override
-  public ResponseData addUser(User user) {
-    return null;
+  public ResponseData addUser(AddUserDTO addUserDTO) {
+    ResponseData registerRes = userService.register(addUserDTO.getUsername(), addUserDTO.getPassword());
+    if(registerRes.getCode() == 200 && registerRes.getData() instanceof User){
+      User newUser = addUserDTO.toUser();
+      newUser.setId(((User) registerRes.getData()).getId());
+      int insert = userMapper.updateById(newUser);
+      if(insert <= 0){
+        throw new SqlFailedException("用户信息生成失败！");
+      }
+    }else{
+      return registerRes;
+    }
+    return ResponseData.success();
   }
 }

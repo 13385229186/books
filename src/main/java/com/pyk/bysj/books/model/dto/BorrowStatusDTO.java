@@ -19,7 +19,7 @@ public class BorrowStatusDTO {
   private String status;
 
   public BorrowStatus getStatus() {
-    return BorrowStatus.fromValue(status);
+    return BorrowStatus.valueOf(status);
   }
 
 }

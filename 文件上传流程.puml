@@ -1,0 +1,21 @@
+@startuml FileUploadSequence
+participant "前端" as FE
+participant "AdminBookController" as ABC
+participant "PythonScriptExecutor" as PSE
+participant "book_upload.py" as PY
+participant "腾讯云COS" as COS
+
+FE -> ABC : 上传文件(MultipartFile)
+ABC -> ABC : 文件格式校验
+ABC -> ABC : 创建临时文件
+ABC -> PSE : 调用Python脚本(参数传递)
+PSE -> PY : 执行脚本
+PY -> COS : 初始化客户端(SecretId/Key)
+PY -> COS : 分片上传文件
+COS -> PY : 返回存储路径
+PY -> PSE : 返回JSON结果
+PSE -> ABC : 脚本执行结果
+ABC -> ABC : 删除临时文件
+ABC -> ABC : 数据库保存存储路径
+ABC -> FE : 返回存储路径
+@enduml

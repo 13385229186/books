@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.pyk.bysj.books.annotation.CurrentUser;
 import com.pyk.bysj.books.app.user.service.admin.AdminUserService;
+import com.pyk.bysj.books.config.UploadTmpConfig;
 import com.pyk.bysj.books.exception.book.BookUploadException;
 import com.pyk.bysj.books.exception.user.AvatarUploadException;
 import com.pyk.bysj.books.mapper.UserMapper;
@@ -17,6 +18,7 @@ import com.pyk.bysj.books.model.entity.User;
 import com.pyk.bysj.books.utils.ParseUtil;
 import com.pyk.bysj.books.utils.PythonScriptExecutor;
 import com.pyk.bysj.books.utils.ResponseData;
+import com.pyk.bysj.books.utils.TokenBlacklist;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -38,7 +40,7 @@ import static com.pyk.bysj.books.utils.JwtTokenUtil.TOKEN_PREFIX;
 
 @Validated
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
   @Autowired
@@ -49,6 +51,12 @@ public class UserController {
 
   @Autowired
   private PasswordEncoder passwordEncoder;
+
+  @Autowired
+  private TokenBlacklist tokenBlacklist;
+
+  @Autowired
+  private UploadTmpConfig uploadTmpConfig;
 
   /**
    * 登录
@@ -81,9 +89,11 @@ public class UserController {
   public ResponseData updateInfo(
           @CurrentUser User user,
           @RequestHeader("Authorization") String authHeader,
-          @RequestPart("updateData") @Valid UserUpdateDTO updateDTO,
+          @RequestPart(value = "updateData", required = false) @Valid UserUpdateDTO updateDTO,
           @RequestPart(value = "avatarData", required = false) MultipartFile avatar
   ){
+    System.out.println("updateDTO" + updateDTO);
+
     if(avatar != null){
       // 校验封面图片格式
       if (!Objects.requireNonNull(avatar.getContentType()).startsWith("image/")) {
@@ -91,9 +101,9 @@ public class UserController {
       }
 
       // 临时存储
-      Path projectDir = Paths.get(System.getProperty("user.dir"));
       String fileName = UUID.randomUUID()+ ".jpg";
-      Path avatarTempPath = projectDir.resolve("uploads/tmp/avatarUploads").resolve(fileName);
+      Path projectDir = Path.of(uploadTmpConfig.getBaseDir());
+      Path avatarTempPath = projectDir.resolve(uploadTmpConfig.getAvatarUploads()).resolve(fileName);
 
       try {
         avatar.transferTo(avatarTempPath);
@@ -108,14 +118,13 @@ public class UserController {
       // 调用Python解析
       String result = PythonScriptExecutor.executePythonScript("avatar_upload.py", args, 10);
       JSONObject jsonObject = JSONObject.parseObject(result);
+      if(updateDTO == null){
+        updateDTO = new UserUpdateDTO();
+      }
       updateDTO.setAvatar(jsonObject.getString("avatar_path"));
     }
 
-    if(StringUtils.isNotBlank(updateDTO.getPassword())){
-      // 加密密码
-      String encodedPassword = passwordEncoder.encode(updateDTO.getPassword());
-      updateDTO.setPassword(encodedPassword);
-    }
+
     String token = authHeader.substring(TOKEN_PREFIX.length());
     return userService.updateInfo(user, updateDTO, token);
   }
@@ -124,6 +133,14 @@ public class UserController {
   public ResponseData getCurrentUser(@CurrentUser User user) {
     UserDTO userById = adminUserService.getUserById(user.getId());
     return ResponseData.success(userById);
+  }
+
+  @PostMapping("/outLogin")
+  public ResponseData outLogin(@RequestHeader("Authorization") String authHeader) {
+    String token = authHeader.substring(TOKEN_PREFIX.length());
+    // 使用户当前token失效
+    tokenBlacklist.addToBlacklist(token);
+    return ResponseData.success();
   }
 
 

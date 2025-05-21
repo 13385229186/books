@@ -1,0 +1,14 @@
+@startuml
+start
+:获取用户历史行为数据;
+:计算书籍行为权重w_ij;
+:查询书籍相似度矩阵;
+:计算推荐得分Score_k = Σ(Similarity(i,k) * w_ik);
+if (推荐列表中存在书籍k?) then (是)
+  :更新得分;
+else (否)
+  :插入新推荐记录;
+endif
+:生成最终推荐列表;
+stop
+@enduml

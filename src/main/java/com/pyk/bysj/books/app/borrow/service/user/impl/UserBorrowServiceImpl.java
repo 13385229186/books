@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -65,14 +66,19 @@ public class UserBorrowServiceImpl implements UserBorrowService {
       throw new CreditException("信用分过低，请联系管理员");
     }
 
-    Long userBorrowNumber = borrowMapper.selectCount(
+    List<Borrow> borrows = borrowMapper.selectList(
             Wrappers.<Borrow>lambdaQuery()
                     .eq(Borrow::getUserId, user.getId())
                     .in(Borrow::getStatus, BorrowStatus.APPLIED, BorrowStatus.BORROWED, BorrowStatus.OVERDUE)
     );
-    if(creditScore >= 80 && userBorrowNumber >= 3) {
+    borrows.forEach((borrow) -> {
+      if(Objects.equals(borrow.getBookId(), bookId)){
+        throw new CreditException("已借阅该书，请勿重复借阅");
+      }
+    });
+    if(creditScore >= 80 && borrows.size() >= 3) {
       throw new CreditException("当前最多只能同时借阅3本书，请保持良好借书习惯");
-    }else if (creditScore < 80 && creditScore > 50 && userBorrowNumber >= 1) {
+    }else if (creditScore < 80 && creditScore > 50 && !borrows.isEmpty()) {
       throw new CreditException("当前最多只能同时借阅1本书，请保持良好借书习惯");
     }
 

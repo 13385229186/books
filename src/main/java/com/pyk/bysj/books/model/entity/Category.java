@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,8 +12,10 @@ import java.util.List;
 public class Category {
   private Integer id;
   private String name;
-  private Integer parentId;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
-  private List<Category> children;
+
+  public Category(String name) {
+    this.name = name;
+  }
 }

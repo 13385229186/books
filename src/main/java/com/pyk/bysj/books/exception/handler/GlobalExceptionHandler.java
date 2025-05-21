@@ -9,7 +9,9 @@ import com.pyk.bysj.books.exception.borrow.BookNotAvailableException;
 import com.pyk.bysj.books.exception.borrow.CreditException;
 import com.pyk.bysj.books.exception.script.ScriptExecutionException;
 import com.pyk.bysj.books.exception.user.AvatarUploadException;
+import com.pyk.bysj.books.exception.user.UserStatusException;
 import com.pyk.bysj.books.utils.ResponseData;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -35,17 +37,21 @@ public class GlobalExceptionHandler {
     return ResponseData.fail(401, ex.getMessage());
   }
 
+  @ExceptionHandler(UserStatusException.class)
+  public ResponseData handleUserStatusException(UserStatusException ex) {
+    return ResponseData.fail(ex.getCode(), ex.getMessage());
+  }
+
   // validation
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseData handleValidation(MethodArgumentNotValidException ex) {
-    System.out.println("**************");
     List<String> errors = ex.getBindingResult()
             .getFieldErrors()
             .stream()
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .collect(Collectors.toList());
 
-    return ResponseData.fail(400, "参数校验失败", errors);
+    return ResponseData.fail(400, errors.get(0), errors);
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
@@ -53,7 +59,7 @@ public class GlobalExceptionHandler {
     List<String> errors = ex.getConstraintViolations().stream()
             .map(v -> v.getPropertyPath() + ": " + v.getMessage())
             .collect(Collectors.toList());
-    return ResponseData.fail(400, "参数校验失败", errors);
+    return ResponseData.fail(400, errors.get(0), errors);
   }
 
   // script

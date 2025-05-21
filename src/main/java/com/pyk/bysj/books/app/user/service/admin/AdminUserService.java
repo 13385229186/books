@@ -2,6 +2,7 @@ package com.pyk.bysj.books.app.user.service.admin;
 
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.enums.UserStatus;
+import com.pyk.bysj.books.model.dto.AddUserDTO;
 import com.pyk.bysj.books.model.dto.ListQueryResult;
 import com.pyk.bysj.books.model.dto.PageParam;
 import com.pyk.bysj.books.model.dto.UserDTO;
@@ -45,9 +46,9 @@ public interface AdminUserService {
 
   /**
    * 添加用户
-   * @param user 新增用户
+   * @param addUserDTO 新增用户
    * @return ResponseData
    */
-  ResponseData addUser(User user);
+  ResponseData addUser(AddUserDTO addUserDTO);
 
 }

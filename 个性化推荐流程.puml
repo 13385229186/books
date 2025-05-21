@@ -1,0 +1,25 @@
+@startuml RecommendAlgorithmFlowchart
+
+start
+:用户请求推荐(userId, pageParam);
+if (检查冷启动?) then (是)
+    :获取冷启动推荐(热门书籍);
+else (否)
+    :检查推荐是否过期;
+    if (推荐过期?) then (是)
+        :删除旧推荐;
+        :获取用户历史行为书籍;
+        if (有历史行为?) then (是)
+            :计算书籍相似度并加权;
+            :保存新推荐结果;
+        else (否)
+            :使用冷启动推荐;
+        endif
+    endif
+    :获取个性化推荐;
+endif
+:组装推荐结果;
+:返回推荐书籍列表;
+stop
+
+@enduml

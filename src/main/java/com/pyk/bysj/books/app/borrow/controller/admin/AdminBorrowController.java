@@ -1,6 +1,7 @@
 package com.pyk.bysj.books.app.borrow.controller.admin;
 
 import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
+import com.pyk.bysj.books.enums.BorrowStatus;
 import com.pyk.bysj.books.model.dto.BorrowWithPageParamDTO;
 import com.pyk.bysj.books.model.dto.BorrowStatusDTO;
 import com.pyk.bysj.books.model.dto.PageParam;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 @Validated
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 public class AdminBorrowController {
   private final AdminBorrowService adminBorrowService;
 
@@ -28,9 +29,9 @@ public class AdminBorrowController {
   public ResponseData setBorrowStatus(
           @RequestBody @Valid BorrowStatusDTO borrowStatusDTO
   ){
-//    if(borrowStatusDTO.getStatus() == BorrowStatus.APPLIED){
-//      return ResponseData.fail("不可修改为已申请");
-//    }
+    if(borrowStatusDTO.getStatus() == BorrowStatus.APPLIED){
+      return ResponseData.fail("不可修改为已申请");
+    }
     return adminBorrowService.setBorrowStatus(borrowStatusDTO.getId(), borrowStatusDTO.getStatus());
   }
 
@@ -45,8 +46,9 @@ public class AdminBorrowController {
 
   @PostMapping("/borrowList")
   public ResponseData borrowList(
-          @RequestPart("borrowData") @Valid BorrowWithPageParamDTO borrowWithPageParamDTO
+          @RequestBody @Valid BorrowWithPageParamDTO borrowWithPageParamDTO
   ){
+    System.out.println("borrowWithPageParamDTO" + borrowWithPageParamDTO);
     // 提取分页信息
     PageParam pageParam = borrowWithPageParamDTO.getPageParam();
     // 提取筛选条件
@@ -61,7 +63,7 @@ public class AdminBorrowController {
 
   @PostMapping("/violationList")
   public ResponseData violationList(
-          @RequestPart("violationData") @Valid ViolationWithPageParamDTO violationWithPageParamDTO
+          @RequestBody @Valid ViolationWithPageParamDTO violationWithPageParamDTO
   ){
     // 提取分页信息
     PageParam pageParam = violationWithPageParamDTO.getPageParam();

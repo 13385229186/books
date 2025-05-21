@@ -1,0 +1,77 @@
+@startuml
+skinparam linetype ortho
+
+hide circle
+
+entity user {
+  # id
+  name
+  role
+  status
+}
+
+entity login {
+  # id
+  * user_id
+  username
+}
+
+entity category {
+  # id
+  name
+}
+
+entity book {
+  # id
+  title
+  * category_id
+  status
+}
+
+entity borrow {
+  # id
+  * user_id
+  * book_id
+  status
+}
+
+user ||--o{ login
+category ||--o{ book
+user ||--o{ borrow
+book ||--o{ borrow
+
+entity user_credit {
+  # id
+  * user_id
+  credit_score
+}
+
+entity violation_record {
+  # id
+  * borrow_id
+  violation_type
+}
+
+borrow ||--o{ violation_record
+user ||--o{ user_credit
+
+entity user_behavior {
+  # id
+  * user_id
+  * book_id
+  behavior_type
+}
+
+book ||--o{ user_behavior
+user ||--o{ user_behavior
+
+entity recommendation {
+  # id
+  * user_id
+  * book_id
+  score
+}
+
+book ||--o{ recommendation
+user ||--o{ recommendation
+@enduml

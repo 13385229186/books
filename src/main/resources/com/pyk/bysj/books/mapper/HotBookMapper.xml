@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pyk.bysj.books.mapper.HotBookMapper">
+    <insert id="batchInsertOrUpdateByBookId" parameterType="list">
+        INSERT INTO hot_book (book_id, heat_score)
+        VALUES
+        <foreach item="item" collection="list" separator=",">
+            (#{item.bookId}, #{item.heatScore})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        heat_score = VALUES(heat_score)
+    </insert>
+</mapper>

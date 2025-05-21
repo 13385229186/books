@@ -42,6 +42,10 @@ public interface UserService {
    */
   ResponseData updatePassword(String oldPassword, String newPassword);
 
-
-
+  /**
+   * 检验电话号码是否会重复
+   * @param phone 电话号码
+   * @param excludeUserId 排除user
+   */
+  void validatePhoneUniqueness(String phone, Integer excludeUserId);
 }

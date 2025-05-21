@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Validated
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserBorrowController {
   private final UserBorrowService borrowService;
   private final AdminBorrowService adminBorrowService;
@@ -64,8 +64,9 @@ public class UserBorrowController {
   @PostMapping("/borrowListByUser")
   public ResponseData borrowListByUser(
           @CurrentUser User user,
-          @RequestPart("borrowData") @Valid UserBorrowWithPageParamDTO userBorrowWithPageParamDTO
+          @RequestBody @Valid UserBorrowWithPageParamDTO userBorrowWithPageParamDTO
   ){
+    System.out.println("userBorrowWithPageParamDTO" + userBorrowWithPageParamDTO);
     // 提取筛选条件，加入当前用户id
     BorrowWithPageParamDTO borrowWithPageParamDTO = userBorrowWithPageParamDTO.toBorrowWithPageParamDTO();
     borrowWithPageParamDTO.setUserId(user.getId());
@@ -84,7 +85,7 @@ public class UserBorrowController {
   @PostMapping("/violationListByUser")
   public ResponseData violationListByUser(
           @CurrentUser User user,
-          @RequestPart("violationData") @Valid UserViolationWithPageParamDTO userViolationWithPageParamDTO
+          @RequestBody @Valid UserViolationWithPageParamDTO userViolationWithPageParamDTO
   ){
     // 提取筛选条件，加入当前用户id
     ViolationWithPageParamDTO violationWithPageParamDTO = userViolationWithPageParamDTO.toViolationWithPageParamDTO();

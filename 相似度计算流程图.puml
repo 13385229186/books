@@ -1,0 +1,34 @@
+@startuml book_similarity_calculation
+skinparam monochrome true
+skinparam shadowing false
+
+title 书籍相似度计算流程 - 每日凌晨3点自动执行
+
+database "MySQL" as db {
+  frame "用户行为表"
+  frame "书籍相似度表"
+}
+
+component "Java服务" as java {
+  [SimilarityCalculator] as sc
+  [PythonScriptExecutor] as pse
+}
+
+component "Python脚本" as python {
+  [book_similarity_calculator.py] as script
+}
+
+sc --> db : 1. 查询用户行为数据
+sc --> pse : 2. 传递JSON数据
+pse --> script : 3. 调用Python脚本
+script --> pse : 4. 返回相似度结果
+sc --> db : 5. 存储相似度结果
+
+note right of script
+  计算流程:
+  1. 构建物品-用户矩阵
+  2. 计算余弦相似度
+  3. 过滤低分结果
+end note
+
+@enduml

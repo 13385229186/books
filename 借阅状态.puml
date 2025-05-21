@@ -1,0 +1,24 @@
+@startuml
+state "已申请(APPLIED)" as applied
+state "已取消(CANCELLED)" as cancelled
+state "已过期(EXPIRED)" as expired
+state "借阅中(BORROWED)" as borrowed
+state "已逾期(OVERDUE)" as overdue
+state "已归还(RETURNED)" as returned
+state "已丢失(LOST)" as lost
+
+[*] --> applied
+applied --> cancelled : 用户取消
+applied --> expired : 超时未取书
+applied --> borrowed : 管理员确认借出
+borrowed --> overdue : 超过应还日期
+borrowed --> returned : 按时归还
+borrowed --> lost : 图书丢失
+overdue --> returned : 归还图书
+overdue --> lost : 图书丢失
+
+note bottom of expired : 系统自动处理\n扣除10信用分
+note bottom of overdue : 系统自动检测\n扣除20信用分
+note bottom of lost : 管理员手动标记\n扣除40信用分
+note bottom of returned : 按时归还可获得\n5信用分奖励
+@enduml

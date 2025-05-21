@@ -7,6 +7,8 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.pyk.bysj.books.app.book.controller.admin.AdminBookController;
 import com.pyk.bysj.books.app.borrow.service.admin.AdminBorrowService;
 import com.pyk.bysj.books.app.borrow.service.admin.impl.AdminBorrowServiceImpl;
+import com.pyk.bysj.books.app.recommend.service.HotBookCalculator;
+import com.pyk.bysj.books.app.recommend.service.SimilarityCalculator;
 import com.pyk.bysj.books.enums.BorrowStatus;
 import com.pyk.bysj.books.enums.Role;
 import com.pyk.bysj.books.enums.ViolationType;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.support.BeanDefinitionDsl;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.BufferedReader;
@@ -58,6 +61,15 @@ class BooksApplicationTests extends ServiceImpl<BorrowMapper, Borrow> {
   private AdminBorrowServiceImpl adminBorrowService;
   @Autowired
   private AdminBookController adminBookController;
+
+  @Autowired
+  private SimilarityCalculator similarityCalculator;
+
+  @Autowired
+  private HotBookCalculator hotBookCalculator;
+
+  @Autowired
+  private StringRedisTemplate redisTemplate;
 
   @Test void contextLoads() {
 
@@ -131,17 +143,26 @@ class BooksApplicationTests extends ServiceImpl<BorrowMapper, Borrow> {
   }
 
   @Test
-  void myTest(){
-//    LocalDateTime localDateTime = ParseUtil.parseFlexibleDateTime("2025-05-17 16:23:55");
-//    System.out.println("localDateTime = " + localDateTime);
-
-
-//    LocalDate date = LocalDate.parse("2025/05/17", DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-//    System.out.println("date = " + date.atStartOfDay());
-
-//    adminBookController.ttt();
-    System.out.println("JVM 默认编码: " + Charset.defaultCharset());
+  void calculateAndStoreSimilarities() throws IOException {
+    similarityCalculator.calculateAndStoreSimilarities();
   }
+
+  @Test
+  void calculateHotBooks() {
+    hotBookCalculator.calculateHotBooks();
+  }
+
+  @Test
+  void testConnection() {
+    try {
+      redisTemplate.opsForValue().set("test", "value");
+      System.out.println("Redis连接成功");
+    } catch (Exception e) {
+      System.err.println("Redis连接失败: " + e.getMessage());
+    }
+  }
+
+
 
 
 

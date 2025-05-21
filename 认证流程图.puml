@@ -1,0 +1,22 @@
+@startuml
+actor User as user
+participant "JwtAuthenticationTokenFilter" as filter
+participant "UserDetailsService" as uds
+participant "SecurityContextHolder" as context
+participant "AccessDecisionManager" as adm
+participant "Protected API" as api
+
+user -> filter: 请求头携带 Token
+filter -> filter: 从 Header 提取 Token
+filter -> filter: 检查 Token 是否在黑名单或过期
+filter -> uds: 调用 loadUserByUsername()
+uds -> uds: 查询用户及角色
+uds --> filter: 返回 UserDetails（含角色）
+filter -> context: setAuthentication()
+context --> filter: 安全上下文已更新
+filter -> api: 执行后续过滤器链
+api -> adm: 检查接口权限
+adm -> adm: 验证用户角色是否匹配
+adm --> api: 权限通过
+api --> user: 返回数据
+@enduml
